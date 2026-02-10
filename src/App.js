@@ -389,18 +389,22 @@ function App() {
     const fullPhone = `${formData.countryCode} ${formData.phone}`;
 
     try {
-      const response = await fetch('http://localhost:5001/api/contact', {
+      const response = await fetch('/api/contact.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          ...formData,
-          phone: fullPhone
+          name: formData.name,
+          email: formData.email,
+          phone: fullPhone,
+          message: formData.message
         }),
       });
 
-      if (response.ok) {
+      const result = await response.json();
+
+      if (response.ok && result.success) {
         setFormStatus('success');
         setFormData({ name: '', email: '', countryCode: '+974', phone: '', message: '' });
         setTimeout(() => setFormStatus(''), 5000);
@@ -408,6 +412,7 @@ function App() {
         setFormStatus('error');
       }
     } catch (error) {
+      console.error('Error:', error);
       setFormStatus('error');
     }
   };
