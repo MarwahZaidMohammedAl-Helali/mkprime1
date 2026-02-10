@@ -14,6 +14,7 @@ function App() {
   const [formStatus, setFormStatus] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Smooth scroll animation observer
   useEffect(() => {
@@ -435,26 +436,35 @@ function App() {
                 <span>MKPRIME</span>
               </a>
             </div>
-            <div className="nav-links">
+            <div className={`nav-links ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
               {isRTL ? (
                 <>
-                  <a href="#home">{t.nav.home}</a>
-                  <a href="#about">{t.nav.about}</a>
-                  <a href="#services">{t.nav.services}</a>
-                  <a href="#contact">{t.nav.contact}</a>
+                  <a href="#home" onClick={() => setIsMobileMenuOpen(false)}>{t.nav.home}</a>
+                  <a href="#about" onClick={() => setIsMobileMenuOpen(false)}>{t.nav.about}</a>
+                  <a href="#services" onClick={() => setIsMobileMenuOpen(false)}>{t.nav.services}</a>
+                  <a href="#contact" onClick={() => setIsMobileMenuOpen(false)}>{t.nav.contact}</a>
                 </>
               ) : (
                 <>
-                  <a href="#home">{t.nav.home}</a>
-                  <a href="#about">{t.nav.about}</a>
-                  <a href="#services">{t.nav.services}</a>
-                  <a href="#contact">{t.nav.contact}</a>
+                  <a href="#home" onClick={() => setIsMobileMenuOpen(false)}>{t.nav.home}</a>
+                  <a href="#about" onClick={() => setIsMobileMenuOpen(false)}>{t.nav.about}</a>
+                  <a href="#services" onClick={() => setIsMobileMenuOpen(false)}>{t.nav.services}</a>
+                  <a href="#contact" onClick={() => setIsMobileMenuOpen(false)}>{t.nav.contact}</a>
                 </>
               )}
             </div>
-            <button className="lang-toggle" onClick={handleLanguageToggle}>
-              {language === 'ar' ? 'EN' : 'عربي'}
-            </button>
+            <div className="nav-right">
+              <button className="lang-toggle" onClick={handleLanguageToggle}>
+                {language === 'ar' ? 'EN' : 'عربي'}
+              </button>
+              <button 
+                className="mobile-menu-toggle" 
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                aria-label="Toggle menu"
+              >
+                {isMobileMenuOpen ? '✕' : '☰'}
+              </button>
+            </div>
           </div>
         </div>
       </nav>

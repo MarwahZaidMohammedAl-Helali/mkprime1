@@ -87,6 +87,23 @@ body {
   align-items: center;
 }
 
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.mobile-menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  color: #2d3748;
+  cursor: pointer;
+  padding: 0.5rem;
+  line-height: 1;
+}
+
 .logo {
   display: flex;
   align-items: center;
@@ -935,8 +952,44 @@ body {
     padding: 0.75rem 0;
   }
 
+  .mobile-menu-toggle {
+    display: block;
+  }
+
   .nav-links {
-    display: none;
+    position: fixed;
+    top: 70px;
+    left: -100%;
+    width: 100%;
+    height: calc(100vh - 70px);
+    background: white;
+    flex-direction: column;
+    padding: 2rem;
+    gap: 1.5rem;
+    transition: left 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 99;
+  }
+
+  [dir="rtl"] .nav-links {
+    left: auto;
+    right: -100%;
+    transition: right 0.3s ease;
+  }
+
+  .nav-links.mobile-open {
+    left: 0;
+  }
+
+  [dir="rtl"] .nav-links.mobile-open {
+    right: 0;
+    left: auto;
+  }
+
+  .nav-links a {
+    font-size: 1.2rem;
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
   }
 
   .logo span {
