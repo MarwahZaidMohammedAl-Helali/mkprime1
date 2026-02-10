@@ -389,7 +389,12 @@ function App() {
     const fullPhone = `${formData.countryCode} ${formData.phone}`;
 
     try {
-      const response = await fetch('/api/contact.php', {
+      // Use Node.js server in development, PHP in production
+      const apiUrl = process.env.NODE_ENV === 'production' 
+        ? '/api/contact.php' 
+        : 'http://localhost:5001/api/contact';
+
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -404,7 +409,7 @@ function App() {
 
       const result = await response.json();
 
-      if (response.ok && result.success) {
+      if (response.ok && (result.success || response.status === 200)) {
         setFormStatus('success');
         setFormData({ name: '', email: '', countryCode: '+974', phone: '', message: '' });
         setTimeout(() => setFormStatus(''), 5000);

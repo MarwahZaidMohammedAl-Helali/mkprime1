@@ -81,7 +81,7 @@ app.post('/api/contact', async (req, res) => {
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: process.env.EMAIL_USER,
-    subject: `New Contact Form - ${name}`,
+    subject: `New Inquiry from ${name} | MKPRIME`,
     html: `
       <!DOCTYPE html>
       <html>
