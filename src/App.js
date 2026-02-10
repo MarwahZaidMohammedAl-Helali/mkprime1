@@ -14,6 +14,7 @@ function App() {
   const [formStatus, setFormStatus] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [detectedCountry, setDetectedCountry] = useState({ iso: 'QA', name: 'Qatar' });
 
   // Smooth scroll animation observer
   useEffect(() => {
@@ -244,18 +245,43 @@ function App() {
     country.code.includes(searchTerm)
   );
 
-  // Auto-detect user's country
+  // Auto-detect user's country from their browser
   React.useEffect(() => {
-    fetch('https://ipapi.co/json/')
-      .then(response => response.json())
-      .then(data => {
-        if (data.country_calling_code) {
-          setFormData(prev => ({ ...prev, countryCode: data.country_calling_code }));
+    const detectCountry = async () => {
+      // Try ipapi.co
+      try {
+        const res = await fetch('https://ipapi.co/json/');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.country_code) {
+            const match = countries.find(c => c.iso === data.country_code);
+            if (match) {
+              setFormData(prev => ({ ...prev, countryCode: match.code }));
+              setDetectedCountry({ iso: data.country_code, name: data.country_name || match.name });
+              return;
+            }
+          }
         }
-      })
-      .catch(() => {
-        // Keep Qatar as default
-      });
+      } catch (e) { /* try next */ }
+
+      // Fallback: ipwho.is
+      try {
+        const res = await fetch('https://ipwho.is/');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.country_code) {
+            const match = countries.find(c => c.iso === data.country_code);
+            if (match) {
+              setFormData(prev => ({ ...prev, countryCode: match.code }));
+              setDetectedCountry({ iso: data.country_code, name: data.country || match.name });
+              return;
+            }
+          }
+        }
+      } catch (e) { /* keep default */ }
+    };
+
+    detectCountry();
   }, []);
 
   const content = {
@@ -390,8 +416,8 @@ function App() {
 
     try {
       // Use Node.js server in development, PHP in production
-      const apiUrl = process.env.NODE_ENV === 'production' 
-        ? '/api/contact.php' 
+      const apiUrl = process.env.NODE_ENV === 'production'
+        ? '/api/contact.php'
         : 'http://localhost:5001/api/contact';
 
       const response = await fetch(apiUrl, {
@@ -403,7 +429,9 @@ function App() {
           name: formData.name,
           email: formData.email,
           phone: fullPhone,
-          message: formData.message
+          message: formData.message,
+          visitorCountry: detectedCountry.name,
+          visitorCountryCode: detectedCountry.iso
         }),
       });
 
@@ -430,9 +458,9 @@ function App() {
           <div className="nav-content">
             <div className="logo">
               <a href="#home" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none', color: 'inherit' }}>
-                <img 
+                <img
                   src={`${process.env.PUBLIC_URL}/logo.png`}
-                  alt="MKPRIME" 
+                  alt="MKPRIME"
                   onError={(e) => {
                     e.target.style.display = 'none';
                   }}

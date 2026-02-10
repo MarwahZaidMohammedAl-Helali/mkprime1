@@ -14,41 +14,40 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Contact form endpoint
 app.post('/api/contact', async (req, res) => {
-  const { name, email, phone, message } = req.body;
+  const { name, email, phone, message, visitorCountry, visitorCountryCode } = req.body;
 
-  // Detect visitor's country from their IP address
-  let countryCode = 'QA'; // Default to Qatar
-  let countryName = 'Qatar'; // Default to Qatar
+  // Use country detected by the frontend (visitor's browser) — much more reliable
+  // Fall back to server-side IP detection only if frontend didn't send country data
+  let countryCode = visitorCountryCode || 'QA';
+  let countryName = visitorCountry || 'Qatar';
 
-  try {
-    // Get visitor IP
-    // For local testing, we might get ::1 or 127.0.0.1
-    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress;
+  if (!visitorCountryCode) {
+    try {
+      const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+        req.headers['cf-connecting-ip'] ||
+        req.headers['x-real-ip'] ||
+        req.socket.remoteAddress;
 
-    // Check for localhost
-    if (ip === '::1' || ip === '127.0.0.1' || ip.includes('192.168.')) {
-      console.log('Localhost detected, defaulting to Qatar');
-    } else {
-      // Try to get country from API with timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3000); // 3s timeout
+      if (ip !== '::1' && ip !== '127.0.0.1' && !ip.includes('192.168.')) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
 
-      const geoResponse = await fetch(`https://ipapi.co/${ip}/json/`, {
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId);
+        const geoResponse = await fetch(`https://ipapi.co/${ip}/json/`, {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
 
-      if (geoResponse.ok) {
-        const geoData = await geoResponse.json();
-        if (geoData.country_code) {
-          countryCode = geoData.country_code;
-          countryName = geoData.country_name || 'Qatar';
+        if (geoResponse.ok) {
+          const geoData = await geoResponse.json();
+          if (geoData.country_code) {
+            countryCode = geoData.country_code;
+            countryName = geoData.country_name || 'Unknown';
+          }
         }
       }
+    } catch (err) {
+      console.log('Server-side geolocation skipped:', err.message);
     }
-  } catch (err) {
-    console.log('Geolocation skipped/failed:', err.message);
-    // Keep defaults (Qatar)
   }
 
   // Clean phone for WhatsApp
