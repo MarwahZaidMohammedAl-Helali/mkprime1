@@ -1,0 +1,266 @@
+/* Smooth Scroll Animations - Clean Approach */
+
+/* Navigation animations */
+.navbar {
+  animation: slideDown 0.6s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.logo {
+  animation: fadeIn 0.6s ease 0.1s both;
+}
+
+.nav-links {
+  animation: fadeIn 0.6s ease 0.2s both;
+}
+
+.lang-toggle {
+  animation: fadeIn 0.6s ease 0.3s both;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Navigation hover effects */
+.nav-links a {
+  transition: color 0.3s ease;
+  position: relative;
+}
+
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #2d3748;
+  transition: width 0.3s ease;
+}
+
+.nav-links a:hover {
+  color: #2d3748;
+}
+
+.nav-links a:hover::after {
+  width: 100%;
+}
+
+.lang-toggle {
+  transition: all 0.3s ease;
+}
+
+.lang-toggle:hover {
+  background: #1a202c;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(45, 55, 72, 0.3);
+}
+
+/* Hero section animations */
+.hero-content {
+  animation: slideInLeft 0.8s ease;
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.hero-content h1 {
+  animation: fadeIn 0.8s ease 0.3s both;
+}
+
+.hero-content p {
+  animation: fadeIn 0.8s ease 0.5s both;
+}
+
+.cta-button {
+  animation: fadeIn 0.8s ease 0.7s both;
+  transition: all 0.3s ease;
+}
+
+.cta-button:hover {
+  background: #1a202c;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.hero-image {
+  animation: slideInRight 0.8s ease;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Scroll-triggered animations */
+.scroll-animate {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.scroll-animate.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Section title underlines */
+.about h2,
+.services h2,
+.contact-header h2 {
+  position: relative;
+  display: inline-block;
+}
+
+.about h2::after,
+.services h2::after,
+.contact-header h2::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 3px;
+  background: #2d3748;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Button hover effects */
+.social-btn {
+  transition: all 0.3s ease;
+}
+
+.social-btn:nth-child(1):hover {
+  background: #1877f2;
+  color: white;
+  border-color: #1877f2;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(24, 119, 242, 0.25);
+}
+
+.social-btn:nth-child(2):hover {
+  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  color: white;
+  border-color: transparent;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(193, 53, 132, 0.25);
+}
+
+.social-btn svg {
+  transition: transform 0.3s ease;
+}
+
+.social-btn:hover svg {
+  transform: scale(1.1);
+}
+
+.submit-button {
+  transition: all 0.3s ease;
+}
+
+.submit-button:hover:not(:disabled) {
+  background: #1a202c;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(45, 55, 72, 0.25);
+}
+
+/* Form input effects */
+.form-field input:not(.phone-number-input):not(.country-search),
+.form-field textarea,
+.phone-number-input {
+  transition: all 0.3s ease;
+}
+
+.form-field input:not(.phone-number-input):not(.country-search):focus,
+.form-field textarea:focus,
+.phone-number-input:focus {
+  border-color: #2d3748;
+  box-shadow: 0 0 0 3px rgba(45, 55, 72, 0.1);
+}
+
+/* Country dropdown */
+.country-button {
+  transition: all 0.3s ease;
+}
+
+.country-button:hover {
+  background: #f9fafb;
+}
+
+.country-option {
+  transition: all 0.2s ease;
+}
+
+.country-option:hover {
+  background: #f9fafb;
+  transform: translateX(5px);
+}
+
+[dir="rtl"] .country-option:hover {
+  transform: translateX(-5px);
+}
+
+/* Footer */
+.contact-footer svg {
+  transition: transform 0.3s ease;
+}
+
+.contact-footer:hover svg {
+  transform: scale(1.1);
+}
+
+/* Message alert */
+.message-alert {
+  animation: slideUp 0.5s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
