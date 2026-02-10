@@ -425,7 +425,13 @@ function App() {
           <div className="nav-content">
             <div className="logo">
               <a href="#home" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none', color: 'inherit' }}>
-                <img src="/logo.png" alt="MKPRIME" />
+                <img 
+                  src={`${process.env.PUBLIC_URL}/logo.png`}
+                  alt="MKPRIME" 
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                />
                 <span>MKPRIME</span>
               </a>
             </div>
