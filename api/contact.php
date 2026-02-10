@@ -48,7 +48,7 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 
 // Email configuration - UPDATE THESE VALUES
 $to = 'mkptime667@gmail.com'; // Company email
-$subject = 'New Contact Form Submission - MKPRIME';
+$subject = 'New Inquiry | MKPRIME';
 
 // Create email body
 $emailBody = "
@@ -69,7 +69,7 @@ $emailBody = "
 <body>
     <div class='container'>
         <div class='header'>
-            <h2>MKPRIME - New Contact Form Submission</h2>
+            <h2>MKPRIME - New Inquiry</h2>
         </div>
         <div class='content'>
             <div class='field'>

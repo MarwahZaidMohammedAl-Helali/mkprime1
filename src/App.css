@@ -94,6 +94,7 @@ body {
   font-size: 1.5rem;
   font-weight: 700;
   color: #1a1a1a;
+  flex-direction: row-reverse;
 }
 
 .logo img {
@@ -809,10 +810,13 @@ body {
   direction: rtl;
 }
 
-[dir="rtl"] .logo,
 [dir="rtl"] .nav-links,
 [dir="rtl"] .about-stats,
 [dir="rtl"] .info-item {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .logo {
   flex-direction: row-reverse;
 }
 
@@ -1028,13 +1032,16 @@ body {
   }
 
   .about-stats {
-    gap: 1.2rem;
-    flex-wrap: wrap;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 0.6rem;
+    justify-content: center;
   }
 
   .stat {
-    font-size: 0.95rem;
-    padding: 0.6rem 1.2rem;
+    font-size: 0.85rem;
+    padding: 0.5rem 0.8rem;
+    white-space: nowrap;
   }
 
   /* --- Services --- */
@@ -1266,19 +1273,24 @@ body {
   }
 
   .about-stats {
-    flex-direction: column;
-    align-items: center;
-    gap: 0.6rem;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    gap: 0.4rem;
   }
 
   [dir="rtl"] .about-stats {
-    flex-direction: column;
+    flex-direction: row-reverse;
   }
 
   .stat {
-    font-size: 0.8rem;
-    padding: 0.4rem 0.8rem;
-    width: auto;
+    font-size: 0.7rem;
+    padding: 0.35rem 0.5rem;
+    white-space: nowrap;
+  }
+
+  .stat-icon {
+    font-size: 1rem;
   }
 
   /* --- Services --- */
@@ -1417,6 +1429,15 @@ body {
 
   .nav-links a {
     font-size: 0.65rem;
+  }
+
+  .stat {
+    font-size: 0.6rem;
+    padding: 0.3rem 0.4rem;
+  }
+
+  .stat-icon {
+    font-size: 0.9rem;
   }
 
   .hero-content h1 {
