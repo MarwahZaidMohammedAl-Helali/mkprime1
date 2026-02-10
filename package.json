@@ -3,12 +3,17 @@
   "version": "1.0.0",
   "description": "MKPRIME Landing Page",
   "main": "server.js",
+  "homepage": "https://marwahzaidmohammedal-helali.github.io/mkprime1",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "server": "node server.js",
+    "predeploy": "npm run build",
+"deploy": "gh-pages -d build",
+
     "dev": "concurrently \"npm start\" \"npm run server\""
   },
+  
   "dependencies": {
     "body-parser": "^1.20.2",
     "concurrently": "^8.2.2",
@@ -32,5 +37,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "gh-pages": "^6.3.0"
   }
 }
