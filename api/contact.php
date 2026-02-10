@@ -38,6 +38,9 @@ $name = htmlspecialchars(strip_tags($data['name']));
 $email = filter_var($data['email'], FILTER_SANITIZE_EMAIL);
 $phone = htmlspecialchars(strip_tags($data['phone']));
 $message = htmlspecialchars(strip_tags($data['message']));
+$visitorCountry = isset($data['visitorCountry']) ? htmlspecialchars(strip_tags($data['visitorCountry'])) : 'Unknown';
+$visitorCountryCode = isset($data['visitorCountryCode']) ? htmlspecialchars(strip_tags($data['visitorCountryCode'])) : '';
+$flagUrl = $visitorCountryCode ? 'https://flagcdn.com/80x60/' . strtolower($visitorCountryCode) . '.png' : '';
 
 // Validate email
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -88,6 +91,10 @@ $emailBody = "
                 <div class='label'>Message:</div>
                 <div class='value'>{$message}</div>
             </div>
+            <div class='field'>
+                <div class='label'>Country:</div>
+                <div class='value'>" . ($flagUrl ? "<img src='{$flagUrl}' alt='{$visitorCountry}' width='24' height='18' style='vertical-align: middle; margin-right: 6px; border-radius: 2px;'> " : '') . "{$visitorCountry}</div>
+            </div>
         </div>
         <div class='footer'>
             <p>This email was sent from the MKPRIME contact form</p>
@@ -108,7 +115,8 @@ $headers .= "Reply-To: {$email}" . "\r\n";
 if (mail($to, $subject, $emailBody, $headers)) {
     http_response_code(200);
     echo json_encode(['success' => true, 'message' => 'Email sent successfully']);
-} else {
+}
+else {
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'Failed to send email']);
 }
