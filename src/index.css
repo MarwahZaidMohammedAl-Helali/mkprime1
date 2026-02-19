@@ -4,6 +4,13 @@
   box-sizing: border-box;
 }
 
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
 body {
   font-family: 'Inter', 'Cairo', sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -14,4 +21,9 @@ body {
 
 body[dir="rtl"] {
   font-family: 'Cairo', 'Inter', sans-serif;
+}
+
+#root {
+  margin: 0;
+  padding: 0;
 }
