@@ -364,11 +364,13 @@ body {
   font-size: 1.5rem;
   margin-bottom: 1rem;
   color: #1a1a1a;
+  text-align: center;
 }
 
 .service-card p {
   color: #4a4a4a;
   line-height: 1.6;
+  text-align: center;
 }
 
 /* Contact Section */
@@ -922,7 +924,7 @@ body {
 }
 
 [dir="rtl"] .hero-content {
-  text-align: right;
+  text-align: center;
 }
 
 [dir="rtl"] .about-content {
@@ -945,8 +947,20 @@ body {
   direction: rtl;
 }
 
+[dir="rtl"] .services h2 {
+  text-align: center;
+}
+
 [dir="rtl"] .service-card {
-  text-align: right;
+  text-align: center;
+}
+
+[dir="rtl"] .service-card h3 {
+  text-align: center;
+}
+
+[dir="rtl"] .service-card p {
+  text-align: center;
 }
 
 [dir="rtl"] .contact-grid {
@@ -1031,15 +1045,16 @@ body {
   .partners-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
+    max-width: 500px;
   }
 
   .partner-card {
-    min-height: 100px;
-    padding: 1.2rem;
+    min-height: 120px;
+    padding: 1.5rem;
   }
 
   .partner-card img {
-    max-height: 60px;
+    max-height: 75px;
   }
 }
 
@@ -1777,9 +1792,7 @@ body[dir="rtl"] .mobile-nav-links a:hover {
 }
 
 /* Desktop Language Toggle */
-.desktop-lang {
-  /* Default styles already applied above */
-}
+/* Default styles already applied above */
 
 /* Desktop Navigation */
 .desktop-nav {
@@ -1905,9 +1918,9 @@ body[dir="rtl"] .mobile-nav-links a:hover {
 
 .partners-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 2rem;
-  max-width: 900px;
+  max-width: 600px;
   margin: 0 auto;
 }
 
@@ -1915,23 +1928,25 @@ body[dir="rtl"] .mobile-nav-links a:hover {
   background: white;
   border: 2px solid #e5e7eb;
   border-radius: 12px;
-  padding: 1.5rem;
+  padding: 2rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 120px;
+  min-height: 140px;
   transition: all 0.3s;
 }
 
 .partner-card:hover {
   border-color: #2d3748;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  transform: translateY(-5px);
 }
 
 .partner-card img {
   max-width: 100%;
-  max-height: 70px;
+  max-height: 90px;
+  width: auto;
+  height: auto;
   object-fit: contain;
 }
 
@@ -2040,13 +2055,17 @@ body[dir="rtl"] .mobile-nav-links a:hover {
     gap: 1.2rem;
   }
 
+  .partners-grid {
+    max-width: 100%;
+  }
+
   .partner-card {
-    min-height: 90px;
-    padding: 1rem;
+    min-height: 100px;
+    padding: 1.2rem;
   }
 
   .partner-card img {
-    max-height: 50px;
+    max-height: 65px;
   }
 
   .career-card {
@@ -2217,16 +2236,17 @@ body[dir="rtl"] .mobile-nav-links a:hover {
   }
 
   .partners-grid {
-    gap: 1.2rem;
+    gap: 1rem;
+    max-width: 100%;
   }
 
   .partner-card {
-    padding: 1.5rem 1.2rem;
-    min-height: 120px;
+    padding: 1.2rem 1rem;
+    min-height: 90px;
   }
 
   .partner-card img {
-    max-height: 60px;
+    max-height: 55px;
   }
 
   /* --- Careers - Very Small Screens --- */
@@ -2283,7 +2303,6 @@ body[dir="rtl"] .mobile-nav-links a:hover {
   .footer p {
     font-size: 0.85rem;
   }
-}
 
   /* --- About Section - Mobile Optimized --- */
   .about {
@@ -2449,18 +2468,20 @@ body[dir="rtl"] .mobile-nav-links a:hover {
   }
 
   .partners-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.2rem;
+    max-width: 100%;
   }
 
   .partner-card {
-    padding: 2rem 1.5rem;
-    min-height: 140px;
+    padding: 1.5rem 1.2rem;
+    min-height: 110px;
   }
 
   .partner-card img {
-    max-height: 70px;
+    max-height: 65px;
   }
+}
 
 
 /* ===== Contact Page - Extra Mobile Fixes ===== */
