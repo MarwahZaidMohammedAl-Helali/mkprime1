@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import './App.css';
 import './animations.css';
+import './admin.css';
+import { getContent } from './contentManager';
 
 // Import pages
 import Home from './pages/Home';
@@ -10,14 +12,28 @@ import Careers from './pages/Careers';
 import Partners from './pages/Partners';
 import Contact from './pages/Contact';
 import JobApplication from './pages/JobApplication';
+import AdminLogin from './pages/AdminLogin';
+import AdminDashboard from './pages/AdminDashboard';
+
+// Protected Route Component
+function ProtectedRoute({ children }) {
+  const isAuthenticated = localStorage.getItem('adminAuth') === 'true';
+  return isAuthenticated ? children : <Navigate to="/admin/login" />;
+}
 
 function AppContent() {
   const [language, setLanguage] = useState('en');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [contentKey, setContentKey] = useState(0);
   const location = useLocation();
+
+  // Check if on admin pages
+  const isAdminPage = location.pathname.startsWith('/admin');
 
   // Smooth scroll animation observer
   useEffect(() => {
+    if (isAdminPage) return;
+    
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -37,16 +53,22 @@ function AppContent() {
     animatedElements.forEach((el) => observer.observe(el));
 
     return () => observer.disconnect();
-  }, [location]);
+  }, [location, isAdminPage]);
 
   // Close mobile menu when route changes
   useEffect(() => {
     setIsMobileMenuOpen(false);
     window.scrollTo(0, 0);
+    // Refresh content when navigating
+    setContentKey(prev => prev + 1);
   }, [location.pathname]);
 
   const handleLanguageToggle = () => {
     setLanguage(language === 'ar' ? 'en' : 'ar');
+  };
+
+  const handleLogin = () => {
+    setContentKey(prev => prev + 1);
   };
 
   const toggleMobileMenu = () => {
@@ -251,169 +273,28 @@ function AppContent() {
     { code: '+263', name: 'Zimbabwe', nameAr: 'زيمبابوي', flag: '🇿🇼', iso: 'ZW' },
   ];
 
+  // Get dynamic content
   const content = {
-    ar: {
-      nav: {
-        home: 'الرئيسية',
-        about: 'من نحن',
-        services: 'خدماتنا',
-        careers: 'الوظائف',
-        partners: 'شركاؤنا',
-        contact: 'اتصل بنا'
-      },
-      hero: {
-        title: 'نمكّن الطلاب في شرق آسيا ودول مجلس التعاون الخليجي',
-        subtitle: 'نقدم خدمات متخصصة لدعم الطلاب في رحلتهم الأكاديمية',
-        cta: 'تواصل معنا'
-      },
-      about: {
-        title: 'من نحن',
-        description: 'نقدّم خدمات مخصصة لدعم الطلاب في الجامعات داخل شرق آسيا والخليج العربي، تشمل: الدعم الأكاديمي - تنظيم الوثائق وإدارتها - حلول تكنولوجيا تعليمية تساعد الطلاب على التكيف والنجاح في بيئة دراستهم. نسعى لتقديم تجربة تعليمية أكثر سلاسة وتنظيماً للطلاب الدوليين.',
-        founded: 'تأسست في 2023',
-        team: '10-15 موظف',
-        type: 'شركة رقمية'
-      },
-      services: {
-        title: 'خدماتنا',
-        service1: {
-          title: 'الدعم الأكاديمي',
-          desc: 'دعم شامل لمساعدة الطلاب على التفوق في دراستهم'
-        },
-        service2: {
-          title: 'الاستشارات التعليمية',
-          desc: 'إرشادات الخبراء للتخطيط الأكاديمي والتطوير الوظيفي'
-        },
-        service3: {
-          title: 'حلول التكنولوجيا التعليمية',
-          desc: 'أدوات وموارد تقنية مبتكرة للنجاح الأكاديمي'
-        }
-      },
-      careers: {
-        title: 'الوظائف',
-        intro: 'انضم إلى فريقنا وساعدنا في تمكين الطلاب في جميع أنحاء شرق آسيا ودول مجلس التعاون الخليجي',
-        job1: {
-          title: 'مستشار أكاديمي',
-          type: 'دوام كامل',
-          description: 'نبحث عن مستشار أكاديمي متحمس لمساعدة الطلاب على تحقيق أهدافهم التعليمية'
-        },
-        job2: {
-          title: 'أخصائي تكنولوجيا التعليم',
-          type: 'دوام كامل',
-          description: 'انضم إلى فريقنا لتطوير حلول تقنية مبتكرة للتعليم'
-        },
-        job3: {
-          title: 'منسق دعم الطلاب',
-          type: 'دوام جزئي',
-          description: 'ساعد في تنسيق خدمات الدعم للطلاب الدوليين'
-        },
-        apply: 'تقدم الآن'
-      },
-      partners: {
-        title: 'شركاؤنا',
-        intro: 'نفخر بالشراكة مع المؤسسات الرائدة لتقديم أفضل الخدمات لطلابنا'
-      },
-      contact: {
-        title: 'تواصل معنا',
-        name: 'الاسم',
-        email: 'البريد الإلكتروني',
-        phone: 'رقم الهاتف',
-        message: 'رسالتك',
-        send: 'إرسال',
-        whatsapp: 'واتساب',
-        address: 'الموقع',
-        facebook: 'فيسبوك',
-        instagram: 'انستغرام',
-        subtitle: 'تواصل معنا',
-        contact_title: 'اتصل بنا',
-        follow_title: 'تابعنا'
-      },
-      footer: {
-        rights: '© 2026 MKPRIME. جميع الحقوق محفوظة.',
-      }
-    },
-    en: {
-      nav: {
-        home: 'Home',
-        about: 'About',
-        services: 'Services',
-        careers: 'Careers',
-        partners: 'Partners',
-        contact: 'Contact'
-      },
-      hero: {
-        title: 'Empowering Students Across EA & GCC',
-        subtitle: 'Specialized services designed to support your academic journey',
-        cta: 'Get in Touch'
-      },
-      about: {
-        title: 'About Us',
-        description: 'MKPRIME is dedicated to providing specialized services designed to support students across East Asia (EA) and the Gulf Cooperation Council (GCC) regions. Our offerings are designed to empower students with solutions, including academic services and support, educational technology solutions, and resources that help students efficiently navigate their academic journeys.',
-        founded: 'Founded in 2023',
-        team: '10-15 Employees',
-        type: 'Digital Company'
-      },
-      services: {
-        title: 'Our Services',
-        service1: {
-          title: 'Academic Support',
-          desc: 'Comprehensive support to help students excel in their studies'
-        },
-        service2: {
-          title: 'Educational Consulting',
-          desc: 'Expert guidance for academic planning and career development'
-        },
-        service3: {
-          title: 'Edu Technology Solutions',
-          desc: 'Innovative tech tools and resources for academic success'
-        }
-      },
-      careers: {
-        title: 'Careers',
-        intro: 'Join our team and help us empower students across East Asia and the GCC',
-        job1: {
-          title: 'Academic Advisor',
-          type: 'Full-time',
-          description: 'We are looking for a passionate academic advisor to help students achieve their educational goals'
-        },
-        job2: {
-          title: 'Educational Technology Specialist',
-          type: 'Full-time',
-          description: 'Join our team to develop innovative technology solutions for education'
-        },
-        job3: {
-          title: 'Student Support Coordinator',
-          type: 'Part-time',
-          description: 'Help coordinate support services for international students'
-        },
-        apply: 'Apply Now'
-      },
-      partners: {
-        title: 'Our Partners',
-        intro: 'We are proud to partner with leading institutions to provide the best services to our students'
-      },
-      contact: {
-        title: 'Contact Us',
-        name: 'Name',
-        email: 'Email',
-        phone: 'Phone Number',
-        message: 'Your Message',
-        send: 'Send Message',
-        whatsapp: 'WhatsApp',
-        address: 'Location',
-        facebook: 'Facebook',
-        instagram: 'Instagram',
-        contact_title: 'Contact Us',
-        follow_title: 'Follow Us'
-      },
-      footer: {
-        rights: '© 2026 MKPRIME. All rights reserved.',
-        tagline: 'Optimizing students\' academic success'
-      }
-    }
+    ar: getContent('ar'),
+    en: getContent('en')
   };
 
   const t = content[language];
   const isRTL = language === 'ar';
+
+  // Don't render navbar/footer on admin pages
+  if (isAdminPage) {
+    return (
+      <Routes>
+        <Route path="/admin/login" element={<AdminLogin onLogin={handleLogin} />} />
+        <Route path="/admin/dashboard" element={
+          <ProtectedRoute>
+            <AdminDashboard />
+          </ProtectedRoute>
+        } />
+      </Routes>
+    );
+  }
 
   return (
     <div className="App" dir={isRTL ? 'rtl' : 'ltr'}>
