@@ -286,6 +286,7 @@ function AppContent() {
   if (isAdminPage) {
     return (
       <Routes>
+        <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
         <Route path="/admin/login" element={<AdminLogin onLogin={handleLogin} />} />
         <Route path="/admin/dashboard" element={
           <ProtectedRoute>
