@@ -531,7 +531,7 @@ function AppContent() {
 
 function App() {
   return (
-    <Router>
+    <Router basename="/mkprime1">
       <AppContent />
     </Router>
   );
