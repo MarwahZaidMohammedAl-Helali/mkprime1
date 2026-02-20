@@ -520,6 +520,28 @@ app.post('/api/job-application', upload.single('cv'), async (req, res) => {
   }
 });
 
+// Serve static files from the React build folder at /mkprime1
+app.use('/mkprime1', express.static(path.join(__dirname, 'build')));
+
+// Serve static files at root as well
+app.use(express.static(path.join(__dirname, 'build')));
+
+// Handle React routing for /mkprime1/* - send all requests to index.html
+app.get('/mkprime1/*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
+
+// Handle React routing for root path
+app.get('/*', (req, res) => {
+  // Skip API routes
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).send('Not found');
+  }
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+  console.log(`Access the site at: http://localhost:${PORT}/`);
+  console.log(`Or with base path: http://localhost:${PORT}/mkprime1/`);
 });
