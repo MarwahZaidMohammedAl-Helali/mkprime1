@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 
 function Careers({ language, content }) {
   const t = content[language];
   
   // Default careers constant - exactly 2 jobs
-  const DEFAULT_CAREERS = [
+  const DEFAULT_CAREERS = useMemo(() => [
     {
       id: 1,
       titleEn: 'Assignment Assistant (Remote)',
@@ -24,13 +24,13 @@ function Careers({ language, content }) {
       descEn: 'Support students academically and socially while coordinating activities, managing data, and assisting with student engagement.',
       descAr: 'دعم الطلاب أكاديمياً واجتماعياً مع تنسيق الأنشطة وإدارة البيانات والمساعدة في مشاركة الطلاب.'
     }
-  ];
+  ], []);
   
   // Load careers from localStorage
   const [careers, setCareers] = useState([]);
   
   // Initialize default careers in localStorage
-  const initializeDefaultCareers = () => {
+  const initializeDefaultCareers = useCallback(() => {
     console.log('Initializing default careers in localStorage');
     try {
       localStorage.setItem('careers', JSON.stringify(DEFAULT_CAREERS));
@@ -39,7 +39,7 @@ function Careers({ language, content }) {
       console.error('Failed to save default careers to localStorage:', error);
       return DEFAULT_CAREERS;
     }
-  };
+  }, [DEFAULT_CAREERS]);
   
   useEffect(() => {
     const loadCareers = () => {

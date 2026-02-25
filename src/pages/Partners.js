@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 
 function Partners({ language, content }) {
   const t = content[language];
@@ -7,7 +7,7 @@ function Partners({ language, content }) {
   const [partners, setPartners] = useState([]);
   
   // Default partners constant
-  const DEFAULT_PARTNERS = [
+  const DEFAULT_PARTNERS = useMemo(() => [
     { 
       id: 1,
       nameEn: 'MK Elite',
@@ -43,7 +43,7 @@ function Partners({ language, content }) {
       logoPath: 'partener 5.jpeg',
       order: 5
     },
-  ];
+  ], []);
 
   // Validate partner object has all required fields
   const validatePartner = (partner) => {
@@ -64,7 +64,7 @@ function Partners({ language, content }) {
   };
 
   // Initialize default partners in localStorage
-  const initializeDefaultPartners = () => {
+  const initializeDefaultPartners = useCallback(() => {
     console.log('Initializing default partners in localStorage');
     try {
       localStorage.setItem('partners', JSON.stringify(DEFAULT_PARTNERS));
@@ -73,7 +73,7 @@ function Partners({ language, content }) {
       console.error('Failed to save default partners to localStorage:', error);
       return DEFAULT_PARTNERS;
     }
-  };
+  }, [DEFAULT_PARTNERS]);
   
   useEffect(() => {
     const loadPartners = () => {

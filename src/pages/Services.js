@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 
 function Services({ language, content }) {
   const t = content[language];
   
   // Default services constant
-  const DEFAULT_SERVICES = [
+  const DEFAULT_SERVICES = useMemo(() => [
     {
       id: 1,
       titleEn: 'Academic Support',
@@ -37,13 +37,13 @@ function Services({ language, content }) {
       descAr: 'نقدم برامج ذات جودة تعليمية عالية ونظام تعلم قوي',
       imageUrl: `${process.env.PUBLIC_URL}/quality-education.jpg`
     }
-  ];
+  ], []);
   
   // Load services from localStorage
   const [services, setServices] = useState([]);
   
   // Initialize default services in localStorage
-  const initializeDefaultServices = () => {
+  const initializeDefaultServices = useCallback(() => {
     console.log('Initializing default services in localStorage');
     try {
       localStorage.setItem('services', JSON.stringify(DEFAULT_SERVICES));
@@ -52,7 +52,7 @@ function Services({ language, content }) {
       console.error('Failed to save default services to localStorage:', error);
       return DEFAULT_SERVICES;
     }
-  };
+  }, [DEFAULT_SERVICES]);
   
   useEffect(() => {
     const loadServices = () => {

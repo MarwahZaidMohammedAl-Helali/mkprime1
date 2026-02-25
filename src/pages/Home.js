@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 
 function Home({ language, content }) {
@@ -13,7 +13,7 @@ function Home({ language, content }) {
   ];
 
   // Default 5 partners
-  const DEFAULT_PARTNERS = [
+  const DEFAULT_PARTNERS = useMemo(() => [
    { 
       id: 1,
       nameEn: 'MK Elite',
@@ -49,7 +49,7 @@ function Home({ language, content }) {
       logoPath: 'partener 5.jpeg',
       order: 5
     },
-  ];
+  ], []);
 
   // Load partners from localStorage
   useEffect(() => {
