@@ -1,110 +1,103 @@
 <?php
+/**
+ * Job Application API Endpoint
+ * Handles job application submissions with CV upload and sends email notifications
+ */
+
+// Enable error reporting for debugging (disable in production)
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+
+// Define API access constant
+define('API_ACCESS', true);
+
+// Include configuration
+require_once __DIR__ . '/config.php';
+
+// Include PHPMailer
+require_once __DIR__ . '/PHPMailer/Exception.php';
+require_once __DIR__ . '/PHPMailer/PHPMailer.php';
+require_once __DIR__ . '/PHPMailer/SMTP.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+// Handle CORS
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
-header('Content-Type: application/json');
 
 // Handle preflight OPTIONS request
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
-    exit();
+    exit;
 }
 
 // Only allow POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['success' => false, 'message' => 'Method not allowed']);
-    exit();
+    send_json_response(false, 'Method not allowed');
 }
 
-// Load environment variables from .env file
-$envFile = __DIR__ . '/../.env';
-if (file_exists($envFile)) {
-    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    foreach ($lines as $line) {
-        if (strpos(trim($line), '#') === 0) continue;
-        list($key, $value) = explode('=', $line, 2);
-        $_ENV[trim($key)] = trim($value);
-    }
-}
-
-// Get form data
-$name = isset($_POST['name']) ? trim($_POST['name']) : '';
-$nationality = isset($_POST['nationality']) ? trim($_POST['nationality']) : '';
-$currentCountry = isset($_POST['currentCountry']) ? trim($_POST['currentCountry']) : '';
-$phone = isset($_POST['phone']) ? trim($_POST['phone']) : '';
-$email = isset($_POST['email']) ? trim($_POST['email']) : '';
-$whyHireYou = isset($_POST['whyHireYou']) ? trim($_POST['whyHireYou']) : '';
-$detectedCountry = isset($_POST['detectedCountry']) ? trim($_POST['detectedCountry']) : 'Unknown';
-$detectedCountryCode = isset($_POST['detectedCountryCode']) ? trim($_POST['detectedCountryCode']) : '';
-$position = 'General Position'; // Default position
+// Extract and sanitize form data
+$name = isset($_POST['name']) ? sanitize_input($_POST['name']) : '';
+$email = isset($_POST['email']) ? sanitize_input($_POST['email']) : '';
+$phone = isset($_POST['phone']) ? sanitize_input($_POST['phone']) : '';
+$nationality = isset($_POST['nationality']) ? sanitize_input($_POST['nationality']) : '';
+$currentCountry = isset($_POST['currentCountry']) ? sanitize_input($_POST['currentCountry']) : '';
+$whyHireYou = isset($_POST['whyHireYou']) ? sanitize_input($_POST['whyHireYou']) : '';
+$detectedCountry = isset($_POST['detectedCountry']) ? sanitize_input($_POST['detectedCountry']) : '';
+$detectedCountryCode = isset($_POST['detectedCountryCode']) ? sanitize_input($_POST['detectedCountryCode']) : '';
 
 // Validate required fields
-if (empty($name) || empty($nationality) || empty($currentCountry) || empty($phone) || empty($email) || empty($whyHireYou)) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'All fields are required']);
-    exit();
+if (empty($name)) {
+    send_json_response(false, 'Name is required');
 }
 
-// Handle file upload
-if (!isset($_FILES['cv']) || $_FILES['cv']['error'] !== UPLOAD_ERR_OK) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'CV file is required']);
-    exit();
+if (empty($email) || !validate_email($email)) {
+    send_json_response(false, 'Valid email is required');
+}
+
+if (empty($phone)) {
+    send_json_response(false, 'Phone number is required');
+}
+
+if (empty($nationality)) {
+    send_json_response(false, 'Nationality is required');
+}
+
+if (empty($currentCountry)) {
+    send_json_response(false, 'Current country is required');
+}
+
+if (empty($whyHireYou)) {
+    send_json_response(false, 'Please tell us why we should hire you');
+}
+
+// Validate CV file upload
+if (!isset($_FILES['cv']) || $_FILES['cv']['error'] === UPLOAD_ERR_NO_FILE) {
+    send_json_response(false, 'CV file is required');
 }
 
 $cvFile = $_FILES['cv'];
-$cvFileName = $cvFile['name'];
-$cvFileSize = $cvFile['size'];
-$cvFileTmpPath = $cvFile['tmp_name'];
 
-// Validate file size (max 5MB)
-if ($cvFileSize > 5 * 1024 * 1024) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'File size exceeds 5MB limit']);
-    exit();
+// Validate CV file
+$validation = validate_file_upload($cvFile, ALLOWED_CV_TYPES, ALLOWED_CV_EXTENSIONS, MAX_FILE_SIZE);
+if (!$validation['valid']) {
+    send_json_response(false, $validation['error']);
 }
 
-// Validate file type
-$allowedExtensions = ['pdf', 'doc', 'docx'];
-$fileExtension = strtolower(pathinfo($cvFileName, PATHINFO_EXTENSION));
-if (!in_array($fileExtension, $allowedExtensions)) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Only PDF, DOC, and DOCX files are allowed']);
-    exit();
-}
-
-// Read file content for email attachment
-$cvFileContent = file_get_contents($cvFileTmpPath);
-$cvFileBase64 = base64_encode($cvFileContent);
-
-// Get MIME type
-$finfo = finfo_open(FILEINFO_MIME_TYPE);
-$cvMimeType = finfo_file($finfo, $cvFileTmpPath);
-finfo_close($finfo);
-
-// Timestamp
+// Create timestamp
 $timestamp = date('l, F j, Y') . ' • ' . date('g:i A');
 
 // Flag URL
-$flagUrl = '';
-if (!empty($detectedCountryCode)) {
-    $flagUrl = 'https://flagcdn.com/80x60/' . strtolower($detectedCountryCode) . '.png';
-}
+$flagUrl = $detectedCountryCode ? "https://flagcdn.com/80x60/" . strtolower($detectedCountryCode) . ".png" : '';
 
-// Email configuration
-$to = isset($_ENV['EMAIL_USER']) ? $_ENV['EMAIL_USER'] : 'mkptime667@gmail.com';
-$subject = "New Job Application - $name | MKPRIME";
-$boundary = md5(time());
+// Calculate file size in KB
+$fileSizeKB = number_format($cvFile['size'] / 1024, 2);
 
-// Email headers
-$headers = "From: $to\r\n";
-$headers .= "Reply-To: $email\r\n";
-$headers .= "MIME-Version: 1.0\r\n";
-$headers .= "Content-Type: multipart/mixed; boundary=\"$boundary\"\r\n";
-
-// Email body (HTML)
-$htmlBody = <<<HTML
+// Create email HTML body
+$emailBody = <<<HTML
 <!DOCTYPE html>
 <html>
 <head>
@@ -119,10 +112,10 @@ $htmlBody = <<<HTML
           
           <!-- Accent Bar -->
           <tr>
-            <td style="height: 5px; background: linear-gradient(90deg, #1a73e8 0%, #34a853 50%, #fbbc04 100%);"></td>
+            <td style="height: 5px; background: linear-gradient(90deg, #000000 0%, #444444 50%, #000000 100%);"></td>
           </tr>
 
-          <!-- Header -->
+          <!-- Header with Brand -->
           <tr>
             <td style="padding: 36px 44px 0 44px;">
               <table width="100%" cellpadding="0" cellspacing="0">
@@ -195,7 +188,7 @@ $htmlBody = <<<HTML
                     <!-- CV Attachment -->
                     <div style="margin-top: 20px; padding: 14px 18px; background-color: #ffffff; border-radius: 8px; border: 1px solid #e8e8e8;">
                       <p style="margin: 0; font-size: 13px; color: #1a1a1a;">
-                        <strong>📎 CV Attached:</strong> $cvFileName <span style="color: #999999;">(" . number_format($cvFileSize / 1024, 2) . " KB)</span>
+                        <strong>📎 CV Attached:</strong> {$cvFile['name']} <span style="color: #999999;">($fileSizeKB KB)</span>
                       </p>
                     </div>
                   </td>
@@ -215,27 +208,24 @@ $htmlBody = <<<HTML
                   <td style="padding: 22px 24px;">
                     <table width="100%" cellpadding="0" cellspacing="0">
                       <tr>
-HTML;
-
-// Add flag if available
-if (!empty($flagUrl)) {
-    $htmlBody .= <<<HTML
                         <!-- Country Flag -->
                         <td width="56" valign="middle" align="center">
+HTML;
+
+if ($detectedCountryCode) {
+    $emailBody .= <<<HTML
                           <img src="$flagUrl" alt="$detectedCountry" width="36" height="27" style="display: block; margin: 0 auto; border-radius: 4px; border: 1px solid #e8e8e8;" />
                           <p style="margin: 5px 0 0 0; font-size: 9px; font-weight: 700; color: #aaaaaa; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; white-space: nowrap;">$detectedCountry</p>
-                        </td>
 HTML;
 } else {
-    $htmlBody .= <<<HTML
-                        <td width="56" valign="middle" align="center">
+    $emailBody .= <<<HTML
                           <div style="width: 36px; height: 27px; background-color: #e0e0e0; border-radius: 4px; margin: 0 auto;"></div>
                           <p style="margin: 5px 0 0 0; font-size: 9px; font-weight: 700; color: #cccccc; text-align: center;">N/A</p>
-                        </td>
 HTML;
 }
 
-$htmlBody .= <<<HTML
+$emailBody .= <<<HTML
+                        </td>
                         <!-- Vertical Divider -->
                         <td width="1" valign="middle" style="padding: 0 18px;">
                           <div style="width: 1px; height: 40px; background-color: #e8e8e8;"></div>
@@ -274,28 +264,39 @@ $htmlBody .= <<<HTML
 </html>
 HTML;
 
-// Construct multipart email message
-$message = "--$boundary\r\n";
-$message .= "Content-Type: text/html; charset=UTF-8\r\n";
-$message .= "Content-Transfer-Encoding: 7bit\r\n\r\n";
-$message .= $htmlBody . "\r\n\r\n";
+// Create PHPMailer instance
+$mail = new PHPMailer(true);
 
-// Attach CV file
-$message .= "--$boundary\r\n";
-$message .= "Content-Type: $cvMimeType; name=\"$cvFileName\"\r\n";
-$message .= "Content-Transfer-Encoding: base64\r\n";
-$message .= "Content-Disposition: attachment; filename=\"$cvFileName\"\r\n\r\n";
-$message .= chunk_split($cvFileBase64) . "\r\n";
-$message .= "--$boundary--";
+try {
+    // Server settings
+    $mail->isSMTP();
+    $mail->Host       = SMTP_HOST;
+    $mail->SMTPAuth   = true;
+    $mail->Username   = SMTP_USERNAME;
+    $mail->Password   = SMTP_PASSWORD;
+    $mail->SMTPSecure = SMTP_SECURE;
+    $mail->Port       = SMTP_PORT;
+    $mail->CharSet    = 'UTF-8';
 
-// Send email
-$mailSent = mail($to, $subject, $message, $headers);
+    // Recipients
+    $mail->setFrom(SMTP_FROM_EMAIL, SMTP_FROM_NAME);
+    $mail->addAddress(SMTP_FROM_EMAIL);
+    $mail->addReplyTo($email, $name);
 
-if ($mailSent) {
-    http_response_code(200);
-    echo json_encode(['success' => true, 'message' => 'Application submitted successfully']);
-} else {
-    http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Failed to send application email']);
+    // Attach CV file
+    $mail->addAttachment($cvFile['tmp_name'], $cvFile['name']);
+
+    // Content
+    $mail->isHTML(true);
+    $mail->Subject = "New Job Application - $name | MKPRIME";
+    $mail->Body    = $emailBody;
+
+    // Send email
+    $mail->send();
+    
+    send_json_response(true, 'Application submitted successfully');
+    
+} catch (Exception $e) {
+    log_error("Job application email error: " . $mail->ErrorInfo);
+    send_json_response(false, 'Failed to submit application. Please try again later.');
 }
-?>

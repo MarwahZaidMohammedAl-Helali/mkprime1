@@ -78,9 +78,9 @@ function Contact({ language, content, countries }) {
     const fullPhone = `${formData.countryCode} ${formData.phone}`;
 
     try {
-      // Use Node.js server in development, PHP in production
+      // Use SendGrid API
       const apiUrl = process.env.NODE_ENV === 'production'
-        ? '/api/contact.php'
+        ? '/api/contact-sendgrid.php'
         : 'http://localhost:5001/api/contact';
 
       const response = await fetch(apiUrl, {

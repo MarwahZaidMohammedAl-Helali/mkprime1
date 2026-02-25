@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 function JobApplication({ language, content, countries }) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const jobPosition = location.state?.jobPosition || 'General Application';
+  
   const [formData, setFormData] = useState({
     name: '',
     nationality: '',
@@ -11,7 +14,8 @@ function JobApplication({ language, content, countries }) {
     phone: '',
     email: '',
     cv: null,
-    whyHireYou: ''
+    whyHireYou: '',
+    jobPosition: jobPosition
   });
   const [formStatus, setFormStatus] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -92,6 +96,7 @@ function JobApplication({ language, content, countries }) {
     submitData.append('phone', fullPhone);
     submitData.append('email', formData.email);
     submitData.append('whyHireYou', formData.whyHireYou);
+    submitData.append('jobPosition', formData.jobPosition);
     submitData.append('detectedCountry', detectedCountry.name);
     submitData.append('detectedCountryCode', detectedCountry.iso);
     if (formData.cv) {
@@ -99,9 +104,9 @@ function JobApplication({ language, content, countries }) {
     }
 
     try {
-      // Use Node.js server in development, PHP in production
+      // Use SendGrid API in production
       const apiUrl = process.env.NODE_ENV === 'production'
-        ? '/api/job-application.php'
+        ? '/api/job-application-sendgrid.php'
         : 'http://localhost:5001/api/job-application';
 
       const response = await fetch(apiUrl, {
@@ -121,7 +126,8 @@ function JobApplication({ language, content, countries }) {
           phone: '', 
           email: '', 
           cv: null, 
-          whyHireYou: '' 
+          whyHireYou: '',
+          jobPosition: jobPosition
         });
         // Reset file input
         document.getElementById('cv-upload').value = '';
@@ -143,6 +149,7 @@ function JobApplication({ language, content, countries }) {
         <div className="application-wrapper">
           <div className="application-header">
             <h2>{language === 'ar' ? 'تقديم طلب وظيفة' : 'Job Application'}</h2>
+            <p className="job-position-title">{jobPosition}</p>
             <p>{language === 'ar' ? 'املأ النموذج أدناه للتقديم على الوظيفة' : 'Fill out the form below to apply for a position'}</p>
           </div>
 

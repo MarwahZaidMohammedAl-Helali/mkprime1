@@ -1,5 +1,26 @@
-node_modules
+# PHP Configuration (contains sensitive credentials)
+api/config.php
+
+# Environment files
 .env
-build
+.env.local
+
+# Build output
+build/
+godaddy-upload/
+
+# System files
 .DS_Store
-npm-debug.log*
+Thumbs.db
+
+# Logs
+error_log.txt
+*.log
+
+# IDE files
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.bak

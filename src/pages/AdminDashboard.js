@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ImageUploader from '../components/ImageUploader';
 
 function AdminDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('careers');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -14,38 +16,31 @@ function AdminDashboard() {
     setIsMobileMenuOpen(false);
   };
   
-  // Load data from localStorage or use defaults
+  // Default data
+  const defaultCareers = [
+    {
+      id: 1,
+      titleEn: 'Assignment Assistant (Remote)',
+      titleAr: 'مساعد المهام (عن بُعد)',
+      type: 'Part-time',
+      typeAr: 'دوام جزئي',
+      descEn: 'Assist students with assignments, projects, and coursework while ensuring academic quality and timely submission.',
+      descAr: 'مساعدة الطلاب في المهام والمشاريع والدورات الدراسية مع ضمان الجودة الأكاديمية والتسليم في الوقت المحدد.'
+    },
+    {
+      id: 2,
+      titleEn: 'Student Coordinator (Remote)',
+      titleAr: 'منسق الطلاب (عن بُعد)',
+      type: 'Part-time',
+      typeAr: 'دوام جزئي',
+      descEn: 'Support students academically and socially while coordinating activities, managing data, and assisting with student engagement.',
+      descAr: 'دعم الطلاب أكاديمياً واجتماعياً مع تنسيق الأنشطة وإدارة البيانات والمساعدة في مشاركة الطلاب.'
+    }
+  ];
+
   const [careers, setCareers] = useState(() => {
     const saved = localStorage.getItem('careers');
-    return saved ? JSON.parse(saved) : [
-      {
-        id: 1,
-        titleEn: 'Academic Advisor',
-        titleAr: 'مستشار أكاديمي',
-        type: 'Full-time',
-        typeAr: 'دوام كامل',
-        descEn: 'We are looking for a passionate academic advisor to help students achieve their educational goals',
-        descAr: 'نبحث عن مستشار أكاديمي متحمس لمساعدة الطلاب على تحقيق أهدافهم التعليمية'
-      },
-      {
-        id: 2,
-        titleEn: 'Educational Technology Specialist',
-        titleAr: 'أخصائي تكنولوجيا التعليم',
-        type: 'Full-time',
-        typeAr: 'دوام كامل',
-        descEn: 'Join our team to develop innovative technology solutions for education',
-        descAr: 'انضم إلى فريقنا لتطوير حلول تقنية مبتكرة للتعليم'
-      },
-      {
-        id: 3,
-        titleEn: 'Student Support Coordinator',
-        titleAr: 'منسق دعم الطلاب',
-        type: 'Part-time',
-        typeAr: 'دوام جزئي',
-        descEn: 'Help coordinate support services for international students',
-        descAr: 'ساعد في تنسيق خدمات الدعم للطلاب الدوليين'
-      }
-    ];
+    return saved ? JSON.parse(saved) : defaultCareers;
   });
 
   const [aboutInfo, setAboutInfo] = useState(() => {
@@ -83,6 +78,13 @@ function AdminDashboard() {
         titleAr: 'حلول التكنولوجيا التعليمية',
         descEn: 'Innovative tech tools and resources for academic success',
         descAr: 'أدوات وموارد تقنية مبتكرة للنجاح الأكاديمي'
+      },
+      {
+        id: 4,
+        titleEn: 'Quality Education Programs',
+        titleAr: 'برامج تعليمية عالية الجودة',
+        descEn: 'We offer programs with a high quality of education and a strong learning system',
+        descAr: 'نقدم برامج ذات جودة تعليمية عالية ونظام تعلم قوي'
       }
     ];
   });
@@ -97,22 +99,75 @@ function AdminDashboard() {
     };
   });
 
-  // Save to localStorage whenever data changes
-  useEffect(() => {
-    localStorage.setItem('careers', JSON.stringify(careers));
-  }, [careers]);
+  const [partners, setPartners] = useState(() => {
+    const saved = localStorage.getItem('partners');
+    return saved ? JSON.parse(saved) : [
+      {
+        id: 1,
+        nameEn: 'Management & Science University',
+        nameAr: 'جامعة الإدارة والعلوم',
+        logoPath: 'partner 1.jpeg',
+        order: 1
+      },
+      {
+        id: 2,
+        nameEn: 'UCSI University',
+        nameAr: 'جامعة UCSI',
+        logoPath: 'Partener 2.png',
+        order: 2
+      },
+      {
+        id: 3,
+        nameEn: 'ALQAWASMI',
+        nameAr: 'القواسمي',
+        logoPath: 'parnter 3.jpeg',
+        order: 3
+      },
+      {
+        id: 4,
+        nameEn: 'Duy Tân University',
+        nameAr: 'جامعة دوي تان',
+        logoPath: 'parnter 4.jpeg',
+        order: 4
+      },
+      {
+        id: 5,
+        nameEn: 'MK Elite',
+        nameAr: 'إم كي إيليت',
+        logoPath: 'partener 5.jpeg',
+        order: 5
+      }
+    ];
+  });
+
+  // Save to server whenever data changes
+  const saveToServer = async () => {
+    try {
+      const response = await fetch('/api/save-content.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          careers,
+          aboutInfo,
+          services,
+          heroContent,
+          partners
+        })
+      });
+      const result = await response.json();
+      if (!result.success) {
+        console.error('Failed to save:', result.message);
+      }
+    } catch (error) {
+      console.error('Error saving to server:', error);
+    }
+  };
 
   useEffect(() => {
-    localStorage.setItem('aboutInfo', JSON.stringify(aboutInfo));
-  }, [aboutInfo]);
-
-  useEffect(() => {
-    localStorage.setItem('services', JSON.stringify(services));
-  }, [services]);
-
-  useEffect(() => {
-    localStorage.setItem('heroContent', JSON.stringify(heroContent));
-  }, [heroContent]);
+    saveToServer();
+  }, [careers, aboutInfo, services, heroContent, partners]);
 
   const handleLogout = () => {
     localStorage.removeItem('adminAuth');
@@ -146,10 +201,73 @@ function AdminDashboard() {
   };
 
   // Service Management
+  const addService = () => {
+    const newService = {
+      id: Date.now(),
+      titleEn: 'New Service',
+      titleAr: 'خدمة جديدة',
+      descEn: 'Service description',
+      descAr: 'وصف الخدمة'
+    };
+    setServices([...services, newService]);
+  };
+
   const updateService = (id, field, value) => {
     setServices(services.map(service => 
       service.id === id ? { ...service, [field]: value } : service
     ));
+  };
+
+  const deleteService = (id) => {
+    if (window.confirm('Are you sure you want to delete this service?')) {
+      setServices(services.filter(service => service.id !== id));
+    }
+  };
+
+  // Partner Management
+  const addPartner = () => {
+    const newPartner = {
+      id: Date.now(),
+      nameEn: 'New Partner',
+      nameAr: 'شريك جديد',
+      logoPath: 'logo.png',
+      order: partners.length + 1
+    };
+    setPartners([...partners, newPartner]);
+  };
+
+  const updatePartner = (id, field, value) => {
+    setPartners(partners.map(partner => 
+      partner.id === id ? { ...partner, [field]: value } : partner
+    ));
+  };
+
+  const deletePartner = (id) => {
+    if (window.confirm('Are you sure you want to delete this partner?')) {
+      setPartners(partners.filter(partner => partner.id !== id));
+    }
+  };
+
+  const movePartnerUp = (id) => {
+    const index = partners.findIndex(p => p.id === id);
+    if (index > 0) {
+      const newPartners = [...partners];
+      [newPartners[index - 1], newPartners[index]] = [newPartners[index], newPartners[index - 1]];
+      // Update order values
+      newPartners.forEach((p, i) => p.order = i + 1);
+      setPartners(newPartners);
+    }
+  };
+
+  const movePartnerDown = (id) => {
+    const index = partners.findIndex(p => p.id === id);
+    if (index < partners.length - 1) {
+      const newPartners = [...partners];
+      [newPartners[index], newPartners[index + 1]] = [newPartners[index + 1], newPartners[index]];
+      // Update order values
+      newPartners.forEach((p, i) => p.order = i + 1);
+      setPartners(newPartners);
+    }
   };
 
   return (
@@ -185,16 +303,22 @@ function AdminDashboard() {
             📋 Careers
           </button>
           <button 
-            className={activeTab === 'about' ? 'active' : ''} 
-            onClick={() => { setActiveTab('about'); closeMobileMenu(); }}
-          >
-            ℹ️ About Us
-          </button>
-          <button 
             className={activeTab === 'services' ? 'active' : ''} 
             onClick={() => { setActiveTab('services'); closeMobileMenu(); }}
           >
             🛠️ Services
+          </button>
+          <button 
+            className={activeTab === 'partners' ? 'active' : ''} 
+            onClick={() => { setActiveTab('partners'); closeMobileMenu(); }}
+          >
+            🤝 Partners
+          </button>
+          <button 
+            className={activeTab === 'about' ? 'active' : ''} 
+            onClick={() => { setActiveTab('about'); closeMobileMenu(); }}
+          >
+            ℹ️ About Us
           </button>
           <button 
             className={activeTab === 'hero' ? 'active' : ''} 
@@ -223,8 +347,9 @@ function AdminDashboard() {
           </button>
           <h1>
             {activeTab === 'careers' && 'Manage Careers'}
-            {activeTab === 'about' && 'Manage About Us'}
             {activeTab === 'services' && 'Manage Services'}
+            {activeTab === 'partners' && 'Manage Partners'}
+            {activeTab === 'about' && 'Manage About Us'}
             {activeTab === 'hero' && 'Manage Hero Section'}
           </h1>
         </div>
@@ -385,50 +510,138 @@ function AdminDashboard() {
           {/* Services Tab */}
           {activeTab === 'services' && (
             <div className="services-management">
-              {services.map(service => (
-                <div key={service.id} className="service-item">
-                  <h3>Service {service.id}</h3>
-                  <div className="form-grid">
-                    <div className="form-group">
-                      <label>Title (English)</label>
-                      <input
-                        type="text"
-                        value={service.titleEn}
-                        onChange={(e) => updateService(service.id, 'titleEn', e.target.value)}
-                      />
+              <button className="add-button" onClick={addService}>
+                + Add New Service
+              </button>
+              
+              <div className="services-list">
+                {services.map(service => (
+                  <div key={service.id} className="service-item">
+                    <div className="item-header">
+                      <h3>Service #{service.id}</h3>
+                      <button 
+                        className="delete-button" 
+                        onClick={() => deleteService(service.id)}
+                      >
+                        🗑️ Delete
+                      </button>
                     </div>
                     
-                    <div className="form-group">
-                      <label>Title (Arabic)</label>
-                      <input
-                        type="text"
-                        value={service.titleAr}
-                        onChange={(e) => updateService(service.id, 'titleAr', e.target.value)}
-                        dir="rtl"
-                      />
-                    </div>
-                    
-                    <div className="form-group full-width">
-                      <label>Description (English)</label>
-                      <textarea
-                        value={service.descEn}
-                        onChange={(e) => updateService(service.id, 'descEn', e.target.value)}
-                        rows="3"
-                      />
-                    </div>
-                    
-                    <div className="form-group full-width">
-                      <label>Description (Arabic)</label>
-                      <textarea
-                        value={service.descAr}
-                        onChange={(e) => updateService(service.id, 'descAr', e.target.value)}
-                        rows="3"
-                        dir="rtl"
-                      />
+                    <div className="form-grid">
+                      <div className="form-group">
+                        <label>Title (English)</label>
+                        <input
+                          type="text"
+                          value={service.titleEn}
+                          onChange={(e) => updateService(service.id, 'titleEn', e.target.value)}
+                        />
+                      </div>
+                      
+                      <div className="form-group">
+                        <label>Title (Arabic)</label>
+                        <input
+                          type="text"
+                          value={service.titleAr}
+                          onChange={(e) => updateService(service.id, 'titleAr', e.target.value)}
+                          dir="rtl"
+                        />
+                      </div>
+                      
+                      <div className="form-group full-width">
+                        <label>Description (English)</label>
+                        <textarea
+                          value={service.descEn}
+                          onChange={(e) => updateService(service.id, 'descEn', e.target.value)}
+                          rows="3"
+                        />
+                      </div>
+                      
+                      <div className="form-group full-width">
+                        <label>Description (Arabic)</label>
+                        <textarea
+                          value={service.descAr}
+                          onChange={(e) => updateService(service.id, 'descAr', e.target.value)}
+                          rows="3"
+                          dir="rtl"
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Partners Tab */}
+          {activeTab === 'partners' && (
+            <div className="partners-management">
+              <button className="add-button" onClick={addPartner}>
+                + Add New Partner
+              </button>
+              
+              <div className="partners-list">
+                {partners.sort((a, b) => a.order - b.order).map((partner, index) => (
+                  <div key={partner.id} className="partner-item">
+                    <div className="item-header">
+                      <h3>Partner #{partner.order}</h3>
+                      <div className="button-group">
+                        <button 
+                          className="order-button" 
+                          onClick={() => movePartnerUp(partner.id)}
+                          disabled={index === 0}
+                          title="Move Up"
+                        >
+                          ⬆️
+                        </button>
+                        <button 
+                          className="order-button" 
+                          onClick={() => movePartnerDown(partner.id)}
+                          disabled={index === partners.length - 1}
+                          title="Move Down"
+                        >
+                          ⬇️
+                        </button>
+                        <button 
+                          className="delete-button" 
+                          onClick={() => deletePartner(partner.id)}
+                        >
+                          🗑️ Delete
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="form-grid">
+                      <div className="form-group">
+                        <label>Name (English)</label>
+                        <input
+                          type="text"
+                          value={partner.nameEn}
+                          onChange={(e) => updatePartner(partner.id, 'nameEn', e.target.value)}
+                        />
+                      </div>
+                      
+                      <div className="form-group">
+                        <label>Name (Arabic)</label>
+                        <input
+                          type="text"
+                          value={partner.nameAr}
+                          onChange={(e) => updatePartner(partner.id, 'nameAr', e.target.value)}
+                          dir="rtl"
+                        />
+                      </div>
+                      
+                      <div className="form-group full-width">
+                        <label>Partner Logo</label>
+                        <ImageUploader
+                          currentImage={partner.logoPath}
+                          onImageChange={(filename) => updatePartner(partner.id, 'logoPath', filename)}
+                          onImageDelete={() => updatePartner(partner.id, 'logoPath', '')}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 

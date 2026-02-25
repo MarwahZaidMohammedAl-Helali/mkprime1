@@ -1,30 +1,24 @@
 {
-  "name": "mkprime-landing",
+  "name": "mkprime",
   "version": "1.0.0",
-  "description": "MKPRIME Landing Page",
-  "main": "server.js",
-  "homepage": "https://marwahzaidmohammedal-helali.github.io/mkprime1",
+  "private": true,
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.20.0",
+    "react-scripts": "5.0.1",
+    "web-vitals": "^3.5.0"
+  },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "server": "node server.js",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d build",
-    "dev": "concurrently \"npm start\" \"npm run server\""
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
   },
-  "dependencies": {
-    "body-parser": "^1.20.2",
-    "concurrently": "^8.2.2",
-    "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
-    "express": "^4.18.2",
-    "multer": "^2.0.2",
-    "nodemailer": "^6.9.7",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-phone-number-input": "^3.4.14",
-    "react-router-dom": "^7.13.0",
-    "react-scripts": "5.0.1"
+  "eslintConfig": {
+    "extends": [
+      "react-app"
+    ]
   },
   "browserslist": {
     "production": [
@@ -37,8 +31,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "gh-pages": "^6.3.0"
   }
 }
