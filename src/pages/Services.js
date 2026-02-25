@@ -119,7 +119,7 @@ function Services({ language, content }) {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('localStorageUpdated', handleCustomStorageChange);
     };
-  }, []);
+  }, [DEFAULT_SERVICES, initializeDefaultServices]);
 
   return (
     <section id="services" className="services scroll-animate page-section">

@@ -94,7 +94,7 @@ function Home({ language, content }) {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('localStorageUpdated', handleCustomStorageChange);
     };
-  }, []);
+  }, [DEFAULT_PARTNERS]);
 
   // Auto-slide every 5 seconds
   useEffect(() => {

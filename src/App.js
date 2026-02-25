@@ -24,7 +24,6 @@ function ProtectedRoute({ children }) {
 function AppContent() {
   const [language, setLanguage] = useState('en');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [contentKey, setContentKey] = useState(0);
   const location = useLocation();
 
   // Check if on admin pages
@@ -59,8 +58,6 @@ function AppContent() {
   useEffect(() => {
     setIsMobileMenuOpen(false);
     window.scrollTo(0, 0);
-    // Refresh content when navigating
-    setContentKey(prev => prev + 1);
   }, [location.pathname]);
 
   const handleLanguageToggle = () => {
@@ -68,7 +65,7 @@ function AppContent() {
   };
 
   const handleLogin = () => {
-    setContentKey(prev => prev + 1);
+    // Login handler
   };
 
   const toggleMobileMenu = () => {

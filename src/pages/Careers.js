@@ -106,7 +106,7 @@ function Careers({ language, content }) {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('localStorageUpdated', handleCustomStorageChange);
     };
-  }, []);
+  }, [DEFAULT_CAREERS, initializeDefaultCareers]);
 
   return (
     <section className="careers page-section scroll-animate">

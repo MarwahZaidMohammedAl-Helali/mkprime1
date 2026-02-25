@@ -22,8 +22,6 @@ function JobApplication({ language, content, countries }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [detectedCountry, setDetectedCountry] = useState({ iso: 'QA', name: 'Qatar' });
 
-  const t = content[language];
-
   const filteredCountries = countries.filter((country) =>
     country.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     country.nameAr.includes(searchTerm) ||

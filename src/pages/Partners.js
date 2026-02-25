@@ -153,7 +153,7 @@ function Partners({ language, content }) {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('localStorageUpdated', handleCustomStorageChange);
     };
-  }, []);
+  }, [DEFAULT_PARTNERS, initializeDefaultPartners]);
 
   // Get partner name with placeholder for empty values
   const getPartnerName = (partner) => {
