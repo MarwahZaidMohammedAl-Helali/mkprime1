@@ -10,36 +10,36 @@ function Partners({ language, content }) {
   const DEFAULT_PARTNERS = [
     { 
       id: 1,
-      nameEn: 'Management & Science University',
-      nameAr: 'جامعة الإدارة والعلوم',
+      nameEn: 'MK Elite',
+      nameAr: 'MK Elite',
       logoPath: 'partner 1.jpeg',
       order: 1
     },
     { 
       id: 2,
-      nameEn: 'UCSI University',
-      nameAr: 'جامعة UCSI',
+      nameEn: 'ALQAWASMI',
+      nameAr: 'ALQAWASMI',
       logoPath: 'Partener 2.png',
       order: 2
     },
     { 
       id: 3,
-      nameEn: 'ALQAWASMI',
-      nameAr: 'القواسمي',
+      nameEn: 'Management & Science University',
+      nameAr: 'Management & Science University',
       logoPath: 'parnter 3.jpeg',
       order: 3
     },
     { 
       id: 4,
-      nameEn: 'Duy Tân University',
-      nameAr: 'جامعة دوي تان',
+      nameEn: 'UCSI University',
+      nameAr: 'UCSI University',
       logoPath: 'parnter 4.jpeg',
       order: 4
     },
     { 
       id: 5,
-      nameEn: 'MK Elite',
-      nameAr: 'إم كي إيليت',
+      nameEn: 'Duy Tân University',
+      nameAr: 'Duy Tân University',
       logoPath: 'partener 5.jpeg',
       order: 5
     },

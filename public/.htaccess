@@ -1,4 +1,4 @@
-# Enable Rewrite Engine
+We offer programs with a high quality of education and a strong learning system# Enable Rewrite Engine
 RewriteEngine On
 
 # Redirect all requests to index.html for React Router

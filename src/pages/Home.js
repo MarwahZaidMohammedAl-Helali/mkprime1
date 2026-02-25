@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 
 function Home({ language, content }) {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [partners, setPartners] = useState([]);
   const t = content[language];
 
   const heroImages = [
@@ -11,12 +12,89 @@ function Home({ language, content }) {
     'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1920&q=80'
   ];
 
-  const partners = [
-    { name: 'Partner 1', logo: `${process.env.PUBLIC_URL}/partner 1.jpeg` },
-    { name: 'Partner 2', logo: `${process.env.PUBLIC_URL}/Partener 2.png` },
-    { name: 'Partner 3', logo: `${process.env.PUBLIC_URL}/parnter 3.jpeg` },
-    { name: 'Partner 4', logo: `${process.env.PUBLIC_URL}/parnter 4.jpeg` },
+  // Default 5 partners
+  const DEFAULT_PARTNERS = [
+   { 
+      id: 1,
+      nameEn: 'MK Elite',
+      nameAr: 'MK Elite',
+      logoPath: 'partner 1.jpeg',
+      order: 1
+    },
+    { 
+      id: 2,
+      nameEn: 'ALQAWASMI',
+      nameAr: 'ALQAWASMI',
+      logoPath: 'Partener 2.png',
+      order: 2
+    },
+    { 
+      id: 3,
+      nameEn: 'Management & Science University',
+      nameAr: 'Management & Science University',
+      logoPath: 'parnter 3.jpeg',
+      order: 3
+    },
+    { 
+      id: 4,
+      nameEn: 'UCSI University',
+      nameAr: 'UCSI University',
+      logoPath: 'parnter 4.jpeg',
+      order: 4
+    },
+    { 
+      id: 5,
+      nameEn: 'Duy Tân University',
+      nameAr: 'Duy Tân University',
+      logoPath: 'partener 5.jpeg',
+      order: 5
+    },
   ];
+
+  // Load partners from localStorage
+  useEffect(() => {
+    const loadPartners = () => {
+      try {
+        const saved = localStorage.getItem('partners');
+        if (saved) {
+          const parsedPartners = JSON.parse(saved);
+          if (Array.isArray(parsedPartners) && parsedPartners.length > 0) {
+            setPartners(parsedPartners.sort((a, b) => a.order - b.order).slice(0, 5));
+          } else {
+            localStorage.setItem('partners', JSON.stringify(DEFAULT_PARTNERS));
+            setPartners(DEFAULT_PARTNERS);
+          }
+        } else {
+          localStorage.setItem('partners', JSON.stringify(DEFAULT_PARTNERS));
+          setPartners(DEFAULT_PARTNERS);
+        }
+      } catch (error) {
+        console.error('Error loading partners:', error);
+        setPartners(DEFAULT_PARTNERS);
+      }
+    };
+    
+    loadPartners();
+    
+    // Listen for storage changes
+    const handleStorageChange = (e) => {
+      if (e.key === 'partners') {
+        loadPartners();
+      }
+    };
+    
+    const handleCustomStorageChange = () => {
+      loadPartners();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('localStorageUpdated', handleCustomStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('localStorageUpdated', handleCustomStorageChange);
+    };
+  }, []);
 
   // Auto-slide every 5 seconds
   useEffect(() => {
@@ -89,9 +167,13 @@ function Home({ language, content }) {
           <p className="partners-intro">{t.partners.intro}</p>
           
           <div className="partners-grid">
-            {partners.map((partner, index) => (
-              <div key={index} className="partner-card">
-                <img src={partner.logo} alt={partner.name} />
+            {partners.map((partner) => (
+              <div key={partner.id} className="partner-card">
+                <img 
+                  src={`${process.env.PUBLIC_URL}/${partner.logoPath}`} 
+                  alt={language === 'ar' ? partner.nameAr : partner.nameEn} 
+                />
+                <h3 className="partner-name">{language === 'ar' ? partner.nameAr : partner.nameEn}</h3>
               </div>
             ))}
           </div>

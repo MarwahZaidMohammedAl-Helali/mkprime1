@@ -51,6 +51,10 @@ export const getContent = (language) => {
         service3: {
           title: dynamic.services[2]?.titleAr || 'حلول التكنولوجيا التعليمية',
           desc: dynamic.services[2]?.descAr || 'أدوات وموارد تقنية مبتكرة للنجاح الأكاديمي'
+        },
+        service4: {
+          title: dynamic.services[3]?.titleAr || 'برامج تعليمية عالية الجودة',
+          desc: dynamic.services[3]?.descAr || 'نقدم برامج ذات جودة تعليمية عالية ونظام تعلم قوي'
         }
       },
       careers: {
@@ -120,6 +124,10 @@ export const getContent = (language) => {
         service3: {
           title: dynamic.services[2]?.titleEn || 'Edu Technology Solutions',
           desc: dynamic.services[2]?.descEn || 'Innovative tech tools and resources for academic success'
+        },
+        service4: {
+          title: dynamic.services[3]?.titleEn || 'Quality Education Programs',
+          desc: dynamic.services[3]?.descEn || 'We offer programs with a high quality of education and a strong learning system'
         }
       },
       careers: {

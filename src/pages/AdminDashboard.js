@@ -31,8 +31,8 @@ function AdminDashboard() {
       id: 2,
       titleEn: 'Student Coordinator (Remote)',
       titleAr: 'منسق الطلاب (عن بُعد)',
-      type: 'Part-time',
-      typeAr: 'دوام جزئي',
+      type: 'Flexible Hours',
+      typeAr: 'ساعات مرنة',
       descEn: 'Support students academically and socially while coordinating activities, managing data, and assisting with student engagement.',
       descAr: 'دعم الطلاب أكاديمياً واجتماعياً مع تنسيق الأنشطة وإدارة البيانات والمساعدة في مشاركة الطلاب.'
     }
@@ -63,28 +63,32 @@ function AdminDashboard() {
         titleEn: 'Academic Support',
         titleAr: 'الدعم الأكاديمي',
         descEn: 'Comprehensive support to help students excel in their studies',
-        descAr: 'دعم شامل لمساعدة الطلاب على التفوق في دراستهم'
+        descAr: 'دعم شامل لمساعدة الطلاب على التفوق في دراستهم',
+        imageUrl: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&q=80'
       },
       {
         id: 2,
         titleEn: 'Educational Consulting',
         titleAr: 'الاستشارات التعليمية',
         descEn: 'Expert guidance for academic planning and career development',
-        descAr: 'إرشادات الخبراء للتخطيط الأكاديمي والتطوير الوظيفي'
+        descAr: 'إرشادات الخبراء للتخطيط الأكاديمي والتطوير الوظيفي',
+        imageUrl: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&q=80'
       },
       {
         id: 3,
         titleEn: 'Edu Technology Solutions',
         titleAr: 'حلول التكنولوجيا التعليمية',
         descEn: 'Innovative tech tools and resources for academic success',
-        descAr: 'أدوات وموارد تقنية مبتكرة للنجاح الأكاديمي'
+        descAr: 'أدوات وموارد تقنية مبتكرة للنجاح الأكاديمي',
+        imageUrl: 'https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=400&q=80'
       },
       {
         id: 4,
         titleEn: 'Quality Education Programs',
         titleAr: 'برامج تعليمية عالية الجودة',
         descEn: 'We offer programs with a high quality of education and a strong learning system',
-        descAr: 'نقدم برامج ذات جودة تعليمية عالية ونظام تعلم قوي'
+        descAr: 'نقدم برامج ذات جودة تعليمية عالية ونظام تعلم قوي',
+        imageUrl: `${process.env.PUBLIC_URL}/quality-education.jpg`
       }
     ];
   });
@@ -102,72 +106,70 @@ function AdminDashboard() {
   const [partners, setPartners] = useState(() => {
     const saved = localStorage.getItem('partners');
     return saved ? JSON.parse(saved) : [
-      {
-        id: 1,
-        nameEn: 'Management & Science University',
-        nameAr: 'جامعة الإدارة والعلوم',
-        logoPath: 'partner 1.jpeg',
-        order: 1
-      },
-      {
-        id: 2,
-        nameEn: 'UCSI University',
-        nameAr: 'جامعة UCSI',
-        logoPath: 'Partener 2.png',
-        order: 2
-      },
-      {
-        id: 3,
-        nameEn: 'ALQAWASMI',
-        nameAr: 'القواسمي',
-        logoPath: 'parnter 3.jpeg',
-        order: 3
-      },
-      {
-        id: 4,
-        nameEn: 'Duy Tân University',
-        nameAr: 'جامعة دوي تان',
-        logoPath: 'parnter 4.jpeg',
-        order: 4
-      },
-      {
-        id: 5,
-        nameEn: 'MK Elite',
-        nameAr: 'إم كي إيليت',
-        logoPath: 'partener 5.jpeg',
-        order: 5
-      }
+      { 
+      id: 1,
+      nameEn: 'MK Elite',
+      nameAr: 'MK Elite',
+      logoPath: 'partner 1.jpeg',
+      order: 1
+    },
+    { 
+      id: 2,
+      nameEn: 'ALQAWASMI',
+      nameAr: 'ALQAWASMI',
+      logoPath: 'Partener 2.png',
+      order: 2
+    },
+    { 
+      id: 3,
+      nameEn: 'Management & Science University',
+      nameAr: 'Management & Science University',
+      logoPath: 'parnter 3.jpeg',
+      order: 3
+    },
+    { 
+      id: 4,
+      nameEn: 'UCSI University',
+      nameAr: 'UCSI University',
+      logoPath: 'parnter 4.jpeg',
+      order: 4
+    },
+    { 
+      id: 5,
+      nameEn: 'Duy Tân University',
+      nameAr: 'Duy Tân University',
+      logoPath: 'partener 5.jpeg',
+      order: 5
+    }
     ];
   });
 
-  // Save to server whenever data changes
-  const saveToServer = async () => {
-    try {
-      const response = await fetch('/api/save-content.php', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          careers,
-          aboutInfo,
-          services,
-          heroContent,
-          partners
-        })
-      });
-      const result = await response.json();
-      if (!result.success) {
-        console.error('Failed to save:', result.message);
-      }
-    } catch (error) {
-      console.error('Error saving to server:', error);
-    }
-  };
+  // Save to localStorage and trigger event
+  useEffect(() => {
+    localStorage.setItem('careers', JSON.stringify(careers));
+    // Trigger custom event for same-window updates
+    window.dispatchEvent(new Event('localStorageUpdated'));
+  }, [careers]);
 
   useEffect(() => {
-    saveToServer();
-  }, [careers, aboutInfo, services, heroContent, partners]);
+    localStorage.setItem('aboutInfo', JSON.stringify(aboutInfo));
+  }, [aboutInfo]);
+
+  useEffect(() => {
+    localStorage.setItem('services', JSON.stringify(services));
+    // Trigger custom event for same-window updates
+    window.dispatchEvent(new Event('localStorageUpdated'));
+  }, [services]);
+
+  useEffect(() => {
+    localStorage.setItem('heroContent', JSON.stringify(heroContent));
+  }, [heroContent]);
+
+  useEffect(() => {
+    localStorage.setItem('partners', JSON.stringify(partners));
+    // Trigger custom event for same-window updates
+    window.dispatchEvent(new Event('localStorageUpdated'));
+  }, [partners]);
 
   const handleLogout = () => {
     localStorage.removeItem('adminAuth');
@@ -207,7 +209,8 @@ function AdminDashboard() {
       titleEn: 'New Service',
       titleAr: 'خدمة جديدة',
       descEn: 'Service description',
-      descAr: 'وصف الخدمة'
+      descAr: 'وصف الخدمة',
+      imageUrl: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&q=80'
     };
     setServices([...services, newService]);
   };
@@ -404,6 +407,7 @@ function AdminDashboard() {
                           <option value="Full-time">Full-time</option>
                           <option value="Part-time">Part-time</option>
                           <option value="Contract">Contract</option>
+                          <option value="Flexible Hours">Flexible Hours</option>
                         </select>
                       </div>
                       
@@ -416,6 +420,7 @@ function AdminDashboard() {
                           <option value="دوام كامل">دوام كامل</option>
                           <option value="دوام جزئي">دوام جزئي</option>
                           <option value="عقد">عقد</option>
+                          <option value="ساعات مرنة">ساعات مرنة</option>
                         </select>
                       </div>
                       
