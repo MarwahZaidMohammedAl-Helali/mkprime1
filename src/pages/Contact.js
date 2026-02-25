@@ -78,7 +78,7 @@ function Contact({ language, content, countries }) {
     const fullPhone = `${formData.countryCode} ${formData.phone}`;
 
     try {
-      // Use Vercel serverless function
+      // Use Vercel serverless function - Updated for Vercel deployment
       const apiUrl = '/api/contact';
 
       console.log('Sending contact form to:', apiUrl);
