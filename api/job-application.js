@@ -21,7 +21,8 @@ export default async function handler(req, res) {
 
   // Only allow POST requests
   if (req.method !== 'POST') {
-    return res.status(405).json({ success: false, message: 'Method not allowed' });
+    console.error('Method not allowed:', req.method);
+    return res.status(405).json({ success: false, message: 'Method not allowed', method: req.method });
   }
 
   try {
@@ -30,9 +31,20 @@ export default async function handler(req, res) {
     const FROM_EMAIL = process.env.FROM_EMAIL || 'mkprime667@gmail.com';
     const TO_EMAIL = process.env.TO_EMAIL || 'mkprime667@gmail.com';
 
+    console.log('Environment check:', {
+      hasApiKey: !!SENDGRID_API_KEY,
+      apiKeyLength: SENDGRID_API_KEY ? SENDGRID_API_KEY.length : 0,
+      fromEmail: FROM_EMAIL,
+      toEmail: TO_EMAIL
+    });
+
     if (!SENDGRID_API_KEY) {
-      console.error('SENDGRID_API_KEY is not set');
-      return res.status(500).json({ success: false, message: 'Server configuration error' });
+      console.error('SENDGRID_API_KEY is not set in environment variables');
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Server configuration error: SendGrid API key not configured',
+        hint: 'Please add SENDGRID_API_KEY to Vercel environment variables'
+      });
     }
 
     sgMail.setApiKey(SENDGRID_API_KEY);
@@ -51,6 +63,9 @@ export default async function handler(req, res) {
 
     const { fields, files } = await parseForm();
 
+    console.log('Parsed form fields:', Object.keys(fields));
+    console.log('Parsed files:', Object.keys(files));
+
     // Extract form data
     const name = fields.name?.[0] || fields.name || '';
     const nationality = fields.nationality?.[0] || fields.nationality || '';
@@ -60,9 +75,20 @@ export default async function handler(req, res) {
     const whyHireYou = fields.whyHireYou?.[0] || fields.whyHireYou || '';
     const jobPosition = fields.jobPosition?.[0] || fields.jobPosition || 'General Application';
 
+    console.log('Extracted data:', { name, email, phone, nationality, currentCountry, jobPosition });
+
     // Validate required fields
     if (!name || !email || !phone) {
-      return res.status(400).json({ success: false, message: 'Required fields are missing' });
+      console.error('Missing required fields:', { name: !!name, email: !!email, phone: !!phone });
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Required fields are missing',
+        missing: {
+          name: !name,
+          email: !email,
+          phone: !phone
+        }
+      });
     }
 
     // Handle CV file
@@ -70,6 +96,12 @@ export default async function handler(req, res) {
     const cvFile = files.cv?.[0] || files.cv;
     
     if (cvFile) {
+      console.log('Processing CV file:', { 
+        filename: cvFile.originalFilename || cvFile.newFilename,
+        size: cvFile.size,
+        type: cvFile.mimetype
+      });
+      
       const fs = require('fs');
       const cvContent = fs.readFileSync(cvFile.filepath);
       const cvBase64 = cvContent.toString('base64');
@@ -80,6 +112,10 @@ export default async function handler(req, res) {
         type: cvFile.mimetype || 'application/pdf',
         disposition: 'attachment'
       };
+      
+      console.log('CV attachment prepared:', { filename: cvAttachment.filename, size: cvBase64.length });
+    } else {
+      console.log('No CV file uploaded');
     }
 
     // Create timestamp
@@ -256,17 +292,32 @@ export default async function handler(req, res) {
       msg.attachments = [cvAttachment];
     }
 
+    console.log('Attempting to send email via SendGrid...');
+    console.log('Email config:', { to: TO_EMAIL, from: FROM_EMAIL, subject: msg.subject, hasAttachment: !!cvAttachment });
+
     // Send email via SendGrid
     await sgMail.send(msg);
 
+    console.log('Application email sent successfully!');
     return res.status(200).json({ success: true, message: 'Application submitted successfully' });
 
   } catch (error) {
-    console.error('SendGrid Error:', error);
+    console.error('SendGrid Error Details:', {
+      message: error.message,
+      code: error.code,
+      response: error.response ? {
+        statusCode: error.response.statusCode,
+        body: error.response.body,
+        headers: error.response.headers
+      } : 'No response'
+    });
+    
     return res.status(500).json({ 
       success: false, 
       message: 'Failed to submit application. Please try again later.',
-      error: error.message 
+      error: error.message,
+      code: error.code,
+      details: error.response ? error.response.body : 'No additional details'
     });
   }
 }

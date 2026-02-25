@@ -105,14 +105,39 @@ function JobApplication({ language, content, countries }) {
       // Use Vercel serverless function
       const apiUrl = '/api/job-application';
 
+      console.log('Sending job application to:', apiUrl);
+      console.log('Form data:', {
+        name: formData.name,
+        nationality: formData.nationality,
+        currentCountry: formData.currentCountry,
+        phone: fullPhone,
+        email: formData.email,
+        jobPosition: formData.jobPosition,
+        cvFile: formData.cv ? formData.cv.name : 'No CV'
+      });
+
       const response = await fetch(apiUrl, {
         method: 'POST',
         body: submitData,
       });
 
-      const result = await response.json();
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
 
-      if (response.ok && (result.success || response.status === 200)) {
+      // Check if response has content
+      const contentType = response.headers.get('content-type');
+      let result;
+      
+      if (contentType && contentType.includes('application/json')) {
+        result = await response.json();
+        console.log('Response JSON:', result);
+      } else {
+        const text = await response.text();
+        console.log('Response text:', text);
+        result = { success: false, message: 'Invalid response format', details: text };
+      }
+
+      if (response.ok && result.success) {
         setFormStatus('success');
         setFormData({ 
           name: '', 
@@ -131,11 +156,14 @@ function JobApplication({ language, content, countries }) {
           navigate('/careers');
         }, 3000);
       } else {
+        console.error('Form submission failed:', result);
         setFormStatus('error');
+        alert(`Error: ${result.message || 'Unknown error occurred'}\n\nStatus: ${response.status}\n\nDetails: ${JSON.stringify(result, null, 2)}`);
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error submitting application:', error);
       setFormStatus('error');
+      alert(`Network Error: ${error.message}\n\nPlease check:\n1. Your internet connection\n2. The API endpoint is accessible\n3. File size is under 5MB\n4. CORS settings are correct`);
     }
   };
 

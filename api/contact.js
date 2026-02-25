@@ -14,7 +14,8 @@ export default async function handler(req, res) {
 
   // Only allow POST requests
   if (req.method !== 'POST') {
-    return res.status(405).json({ success: false, message: 'Method not allowed' });
+    console.error('Method not allowed:', req.method);
+    return res.status(405).json({ success: false, message: 'Method not allowed', method: req.method });
   }
 
   try {
@@ -23,9 +24,20 @@ export default async function handler(req, res) {
     const FROM_EMAIL = process.env.FROM_EMAIL || 'mkprime667@gmail.com';
     const TO_EMAIL = process.env.TO_EMAIL || 'mkprime667@gmail.com';
 
+    console.log('Environment check:', {
+      hasApiKey: !!SENDGRID_API_KEY,
+      apiKeyLength: SENDGRID_API_KEY ? SENDGRID_API_KEY.length : 0,
+      fromEmail: FROM_EMAIL,
+      toEmail: TO_EMAIL
+    });
+
     if (!SENDGRID_API_KEY) {
-      console.error('SENDGRID_API_KEY is not set');
-      return res.status(500).json({ success: false, message: 'Server configuration error' });
+      console.error('SENDGRID_API_KEY is not set in environment variables');
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Server configuration error: SendGrid API key not configured',
+        hint: 'Please add SENDGRID_API_KEY to Vercel environment variables'
+      });
     }
 
     sgMail.setApiKey(SENDGRID_API_KEY);
@@ -33,9 +45,21 @@ export default async function handler(req, res) {
     // Extract form data
     const { name, email, phone, message, visitorCountry, visitorCountryCode } = req.body;
 
+    console.log('Received form data:', { name, email, phone, hasMessage: !!message, visitorCountry });
+
     // Validate required fields
     if (!name || !email || !phone || !message) {
-      return res.status(400).json({ success: false, message: 'All fields are required' });
+      console.error('Missing required fields:', { name: !!name, email: !!email, phone: !!phone, message: !!message });
+      return res.status(400).json({ 
+        success: false, 
+        message: 'All fields are required',
+        missing: {
+          name: !name,
+          email: !email,
+          phone: !phone,
+          message: !message
+        }
+      });
     }
 
     // Clean phone for WhatsApp
@@ -208,16 +232,31 @@ export default async function handler(req, res) {
       html: emailBody,
     };
 
+    console.log('Attempting to send email via SendGrid...');
+    console.log('Email config:', { to: TO_EMAIL, from: FROM_EMAIL, subject: msg.subject });
+
     await sgMail.send(msg);
 
+    console.log('Email sent successfully!');
     return res.status(200).json({ success: true, message: 'Email sent successfully' });
 
   } catch (error) {
-    console.error('SendGrid Error:', error);
+    console.error('SendGrid Error Details:', {
+      message: error.message,
+      code: error.code,
+      response: error.response ? {
+        statusCode: error.response.statusCode,
+        body: error.response.body,
+        headers: error.response.headers
+      } : 'No response'
+    });
+    
     return res.status(500).json({ 
       success: false, 
       message: 'Failed to send email. Please try again later.',
-      error: error.message 
+      error: error.message,
+      code: error.code,
+      details: error.response ? error.response.body : 'No additional details'
     });
   }
 }

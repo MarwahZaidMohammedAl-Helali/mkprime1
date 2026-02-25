@@ -81,6 +81,16 @@ function Contact({ language, content, countries }) {
       // Use Vercel serverless function
       const apiUrl = '/api/contact';
 
+      console.log('Sending contact form to:', apiUrl);
+      console.log('Form data:', {
+        name: formData.name,
+        email: formData.email,
+        phone: fullPhone,
+        message: formData.message,
+        visitorCountry: detectedCountry.name,
+        visitorCountryCode: detectedCountry.iso
+      });
+
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
@@ -96,18 +106,35 @@ function Contact({ language, content, countries }) {
         }),
       });
 
-      const result = await response.json();
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
 
-      if (response.ok && (result.success || response.status === 200)) {
+      // Check if response has content
+      const contentType = response.headers.get('content-type');
+      let result;
+      
+      if (contentType && contentType.includes('application/json')) {
+        result = await response.json();
+        console.log('Response JSON:', result);
+      } else {
+        const text = await response.text();
+        console.log('Response text:', text);
+        result = { success: false, message: 'Invalid response format', details: text };
+      }
+
+      if (response.ok && result.success) {
         setFormStatus('success');
         setFormData({ name: '', email: '', countryCode: '+974', phone: '', message: '' });
         setTimeout(() => setFormStatus(''), 5000);
       } else {
+        console.error('Form submission failed:', result);
         setFormStatus('error');
+        alert(`Error: ${result.message || 'Unknown error occurred'}\n\nStatus: ${response.status}\n\nDetails: ${JSON.stringify(result, null, 2)}`);
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error submitting form:', error);
       setFormStatus('error');
+      alert(`Network Error: ${error.message}\n\nPlease check:\n1. Your internet connection\n2. The API endpoint is accessible\n3. CORS settings are correct`);
     }
   };
 
