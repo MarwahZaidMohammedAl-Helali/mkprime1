@@ -102,10 +102,8 @@ function JobApplication({ language, content, countries }) {
     }
 
     try {
-      // Use SendGrid API in production
-      const apiUrl = process.env.NODE_ENV === 'production'
-        ? '/api/job-application-sendgrid.php'
-        : 'http://localhost:5001/api/job-application';
+      // Use Vercel serverless function
+      const apiUrl = '/api/job-application';
 
       const response = await fetch(apiUrl, {
         method: 'POST',

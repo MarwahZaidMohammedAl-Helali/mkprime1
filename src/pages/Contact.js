@@ -78,10 +78,8 @@ function Contact({ language, content, countries }) {
     const fullPhone = `${formData.countryCode} ${formData.phone}`;
 
     try {
-      // Use SendGrid API
-      const apiUrl = process.env.NODE_ENV === 'production'
-        ? '/api/contact-sendgrid.php'
-        : 'http://localhost:5001/api/contact';
+      // Use Vercel serverless function
+      const apiUrl = '/api/contact';
 
       const response = await fetch(apiUrl, {
         method: 'POST',
