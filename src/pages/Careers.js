@@ -4,19 +4,10 @@ import { Link } from 'react-router-dom';
 function Careers({ language, content }) {
   const t = content[language];
   
-  // Default careers constant - exactly 2 jobs
+  // Default careers constant - exactly 1 job
   const DEFAULT_CAREERS = useMemo(() => [
     {
       id: 1,
-      titleEn: 'Assignment Assistant (Remote)',
-      titleAr: 'مساعد المهام (عن بُعد)',
-      type: 'Part-time',
-      typeAr: 'دوام جزئي',
-      descEn: 'Assist students with assignments, projects, and coursework while ensuring academic quality and timely submission.',
-      descAr: 'مساعدة الطلاب في المهام والمشاريع والدورات الدراسية مع ضمان الجودة الأكاديمية والتسليم في الوقت المحدد.'
-    },
-    {
-      id: 2,
       titleEn: 'Student Coordinator (Remote)',
       titleAr: 'منسق الطلاب (عن بُعد)',
       type: 'Flexible Hours',
