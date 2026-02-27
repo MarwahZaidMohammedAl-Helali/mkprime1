@@ -4,6 +4,7 @@ import './App.css';
 import './animations.css';
 import './admin.css';
 import { getContent } from './contentManager';
+import { initializeDefaultContent } from './firebaseHelpers';
 
 // Import pages
 import Home from './pages/Home';
@@ -28,6 +29,11 @@ function AppContent() {
 
   // Check if on admin pages
   const isAdminPage = location.pathname.startsWith('/admin');
+
+  // Initialize Firebase content on app startup
+  useEffect(() => {
+    initializeDefaultContent();
+  }, []);
 
   // Smooth scroll animation observer
   useEffect(() => {

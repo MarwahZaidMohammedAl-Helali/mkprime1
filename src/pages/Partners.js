@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { getContent } from '../firebaseHelpers';
 
 function Partners({ language, content }) {
   const t = content[language];
   
-  // Load partners from localStorage
+  // Load partners from Firebase
   const [partners, setPartners] = useState([]);
   
   // Default partners constant
@@ -63,47 +64,20 @@ function Partners({ language, content }) {
     return true;
   };
 
-  // Initialize default partners in localStorage
+  // Initialize default partners
   const initializeDefaultPartners = useCallback(() => {
-    console.log('Initializing default partners in localStorage');
-    try {
-      localStorage.setItem('partners', JSON.stringify(DEFAULT_PARTNERS));
-      return DEFAULT_PARTNERS;
-    } catch (error) {
-      console.error('Failed to save default partners to localStorage:', error);
-      return DEFAULT_PARTNERS;
-    }
+    console.log('Using default partners');
+    return DEFAULT_PARTNERS;
   }, [DEFAULT_PARTNERS]);
   
   useEffect(() => {
-    const loadPartners = () => {
+    const loadPartners = async () => {
       try {
-        const saved = localStorage.getItem('partners');
+        const partnersData = await getContent('partners');
         
-        if (saved) {
-          // Parse and validate localStorage data
-          let parsedPartners;
-          try {
-            parsedPartners = JSON.parse(saved);
-          } catch (parseError) {
-            console.error('Failed to parse partners from localStorage:', parseError);
-            console.log('Clearing corrupted data and using defaults');
-            localStorage.removeItem('partners');
-            const defaults = initializeDefaultPartners();
-            setPartners(defaults.sort((a, b) => a.order - b.order));
-            return;
-          }
-          
-          // Validate it's an array
-          if (!Array.isArray(parsedPartners)) {
-            console.error('Partners data is not an array:', parsedPartners);
-            const defaults = initializeDefaultPartners();
-            setPartners(defaults.sort((a, b) => a.order - b.order));
-            return;
-          }
-          
+        if (partnersData && partnersData.partners && Array.isArray(partnersData.partners)) {
           // Filter out invalid partners
-          const validPartners = parsedPartners.filter(validatePartner);
+          const validPartners = partnersData.partners.filter(validatePartner);
           
           if (validPartners.length === 0) {
             console.warn('No valid partners found, using defaults');
@@ -112,47 +86,28 @@ function Partners({ language, content }) {
             return;
           }
           
-          if (validPartners.length < parsedPartners.length) {
-            console.warn(`Filtered out ${parsedPartners.length - validPartners.length} invalid partners`);
+          if (validPartners.length < partnersData.partners.length) {
+            console.warn(`Filtered out ${partnersData.partners.length - validPartners.length} invalid partners`);
           }
           
           setPartners(validPartners.sort((a, b) => a.order - b.order));
         } else {
-          // No data in localStorage - initialize with defaults
-          console.log('No partners in localStorage, initializing defaults');
+          console.log('No partners in Firebase, using defaults');
           const defaults = initializeDefaultPartners();
           setPartners(defaults.sort((a, b) => a.order - b.order));
         }
       } catch (error) {
-        console.error('Error loading partners:', error);
-        // Fall back to defaults on any error
+        console.error('Error loading partners from Firebase:', error);
         setPartners(DEFAULT_PARTNERS.sort((a, b) => a.order - b.order));
       }
     };
     
     loadPartners();
     
-    // Listen for storage changes (when admin updates partners in different tab)
-    const handleStorageChange = (e) => {
-      if (e.key === 'partners') {
-        console.log('Storage event received, reloading partners');
-        loadPartners();
-      }
-    };
+    // Reload every 5 seconds to get updates from admin panel
+    const interval = setInterval(loadPartners, 5000);
     
-    // Listen for custom event from same window
-    const handleCustomStorageChange = () => {
-      console.log('Custom storage event received, reloading partners');
-      loadPartners();
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('localStorageUpdated', handleCustomStorageChange);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('localStorageUpdated', handleCustomStorageChange);
-    };
+    return () => clearInterval(interval);
   }, [DEFAULT_PARTNERS, initializeDefaultPartners]);
 
   // Get partner name with placeholder for empty values

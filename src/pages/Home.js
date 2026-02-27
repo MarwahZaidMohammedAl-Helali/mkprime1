@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { getContent } from '../firebaseHelpers';
 
 function Home({ language, content }) {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -51,21 +52,14 @@ function Home({ language, content }) {
     },
   ], []);
 
-  // Load partners from localStorage
+  // Load partners from Firebase
   useEffect(() => {
-    const loadPartners = () => {
+    const loadPartners = async () => {
       try {
-        const saved = localStorage.getItem('partners');
-        if (saved) {
-          const parsedPartners = JSON.parse(saved);
-          if (Array.isArray(parsedPartners) && parsedPartners.length > 0) {
-            setPartners(parsedPartners.sort((a, b) => a.order - b.order).slice(0, 5));
-          } else {
-            localStorage.setItem('partners', JSON.stringify(DEFAULT_PARTNERS));
-            setPartners(DEFAULT_PARTNERS);
-          }
+        const partnersData = await getContent('partners');
+        if (partnersData && partnersData.partners && Array.isArray(partnersData.partners) && partnersData.partners.length > 0) {
+          setPartners(partnersData.partners.sort((a, b) => a.order - b.order).slice(0, 5));
         } else {
-          localStorage.setItem('partners', JSON.stringify(DEFAULT_PARTNERS));
           setPartners(DEFAULT_PARTNERS);
         }
       } catch (error) {
@@ -76,24 +70,10 @@ function Home({ language, content }) {
     
     loadPartners();
     
-    // Listen for storage changes
-    const handleStorageChange = (e) => {
-      if (e.key === 'partners') {
-        loadPartners();
-      }
-    };
+    // Reload every 5 seconds to get updates from admin panel
+    const interval = setInterval(loadPartners, 5000);
     
-    const handleCustomStorageChange = () => {
-      loadPartners();
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('localStorageUpdated', handleCustomStorageChange);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('localStorageUpdated', handleCustomStorageChange);
-    };
+    return () => clearInterval(interval);
   }, [DEFAULT_PARTNERS]);
 
   // Auto-slide every 5 seconds

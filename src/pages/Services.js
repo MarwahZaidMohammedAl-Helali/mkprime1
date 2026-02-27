@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { getContent } from '../firebaseHelpers';
 
 function Services({ language, content }) {
   const t = content[language];
@@ -39,86 +40,39 @@ function Services({ language, content }) {
     }
   ], []);
   
-  // Load services from localStorage
+  // Load services from Firebase
   const [services, setServices] = useState([]);
   
-  // Initialize default services in localStorage
+  // Initialize default services
   const initializeDefaultServices = useCallback(() => {
-    console.log('Initializing default services in localStorage');
-    try {
-      localStorage.setItem('services', JSON.stringify(DEFAULT_SERVICES));
-      return DEFAULT_SERVICES;
-    } catch (error) {
-      console.error('Failed to save default services to localStorage:', error);
-      return DEFAULT_SERVICES;
-    }
+    console.log('Using default services');
+    return DEFAULT_SERVICES;
   }, [DEFAULT_SERVICES]);
   
   useEffect(() => {
-    const loadServices = () => {
+    const loadServices = async () => {
       try {
-        const saved = localStorage.getItem('services');
+        const servicesData = await getContent('services');
         
-        if (saved) {
-          let parsedServices;
-          try {
-            parsedServices = JSON.parse(saved);
-          } catch (parseError) {
-            console.error('Failed to parse services from localStorage:', parseError);
-            const defaults = initializeDefaultServices();
-            setServices(defaults);
-            return;
-          }
-          
-          if (!Array.isArray(parsedServices)) {
-            console.error('Services data is not an array:', parsedServices);
-            const defaults = initializeDefaultServices();
-            setServices(defaults);
-            return;
-          }
-          
-          if (parsedServices.length === 0) {
-            console.warn('No services found, using defaults');
-            const defaults = initializeDefaultServices();
-            setServices(defaults);
-            return;
-          }
-          
-          setServices(parsedServices);
+        if (servicesData && servicesData.services && Array.isArray(servicesData.services) && servicesData.services.length > 0) {
+          setServices(servicesData.services);
         } else {
-          console.log('No services in localStorage, initializing defaults');
+          console.log('No services in Firebase, using defaults');
           const defaults = initializeDefaultServices();
           setServices(defaults);
         }
       } catch (error) {
-        console.error('Error loading services:', error);
+        console.error('Error loading services from Firebase:', error);
         setServices(DEFAULT_SERVICES);
       }
     };
     
     loadServices();
     
-    // Listen for storage changes (when admin updates services)
-    const handleStorageChange = (e) => {
-      if (e.key === 'services') {
-        console.log('Storage event received, reloading services');
-        loadServices();
-      }
-    };
+    // Reload every 5 seconds to get updates from admin panel
+    const interval = setInterval(loadServices, 5000);
     
-    // Listen for custom event from same window
-    const handleCustomStorageChange = () => {
-      console.log('Custom storage event received, reloading services');
-      loadServices();
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('localStorageUpdated', handleCustomStorageChange);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('localStorageUpdated', handleCustomStorageChange);
-    };
+    return () => clearInterval(interval);
   }, [DEFAULT_SERVICES, initializeDefaultServices]);
 
   return (

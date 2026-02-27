@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { getContent } from '../firebaseHelpers';
 
 function Careers({ language, content }) {
   const t = content[language];
@@ -17,86 +18,39 @@ function Careers({ language, content }) {
     }
   ], []);
   
-  // Load careers from localStorage
+  // Load careers from Firebase
   const [careers, setCareers] = useState([]);
   
-  // Initialize default careers in localStorage
+  // Initialize default careers in Firebase
   const initializeDefaultCareers = useCallback(() => {
-    console.log('Initializing default careers in localStorage');
-    try {
-      localStorage.setItem('careers', JSON.stringify(DEFAULT_CAREERS));
-      return DEFAULT_CAREERS;
-    } catch (error) {
-      console.error('Failed to save default careers to localStorage:', error);
-      return DEFAULT_CAREERS;
-    }
+    console.log('Using default careers');
+    return DEFAULT_CAREERS;
   }, [DEFAULT_CAREERS]);
   
   useEffect(() => {
-    const loadCareers = () => {
+    const loadCareers = async () => {
       try {
-        const saved = localStorage.getItem('careers');
+        const careersData = await getContent('careers');
         
-        if (saved) {
-          let parsedCareers;
-          try {
-            parsedCareers = JSON.parse(saved);
-          } catch (parseError) {
-            console.error('Failed to parse careers from localStorage:', parseError);
-            const defaults = initializeDefaultCareers();
-            setCareers(defaults);
-            return;
-          }
-          
-          if (!Array.isArray(parsedCareers)) {
-            console.error('Careers data is not an array:', parsedCareers);
-            const defaults = initializeDefaultCareers();
-            setCareers(defaults);
-            return;
-          }
-          
-          if (parsedCareers.length === 0) {
-            console.warn('No careers found, using defaults');
-            const defaults = initializeDefaultCareers();
-            setCareers(defaults);
-            return;
-          }
-          
-          setCareers(parsedCareers);
+        if (careersData && careersData.jobs && Array.isArray(careersData.jobs) && careersData.jobs.length > 0) {
+          setCareers(careersData.jobs);
         } else {
-          console.log('No careers in localStorage, initializing defaults');
+          console.log('No careers in Firebase, using defaults');
           const defaults = initializeDefaultCareers();
           setCareers(defaults);
         }
       } catch (error) {
-        console.error('Error loading careers:', error);
+        console.error('Error loading careers from Firebase:', error);
         setCareers(DEFAULT_CAREERS);
       }
     };
     
     loadCareers();
     
-    // Listen for storage changes (when admin updates careers)
-    const handleStorageChange = (e) => {
-      if (e.key === 'careers') {
-        console.log('Storage event received, reloading careers');
-        loadCareers();
-      }
-    };
+    // Reload every 5 seconds to get updates from admin panel
+    const interval = setInterval(loadCareers, 5000);
     
-    // Listen for custom event from same window
-    const handleCustomStorageChange = () => {
-      console.log('Custom storage event received, reloading careers');
-      loadCareers();
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('localStorageUpdated', handleCustomStorageChange);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('localStorageUpdated', handleCustomStorageChange);
-    };
+    return () => clearInterval(interval);
   }, [DEFAULT_CAREERS, initializeDefaultCareers]);
 
   return (
