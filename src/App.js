@@ -25,6 +25,8 @@ function ProtectedRoute({ children }) {
 function AppContent() {
   const [language, setLanguage] = useState('en');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [content, setContent] = useState(null);
+  const [loading, setLoading] = useState(true);
   const location = useLocation();
 
   // Check if on admin pages
@@ -33,6 +35,29 @@ function AppContent() {
   // Initialize Firebase content on app startup
   useEffect(() => {
     initializeDefaultContent();
+  }, []);
+
+  // Load content from Firebase
+  useEffect(() => {
+    const loadContent = async () => {
+      try {
+        setLoading(true);
+        const [arContent, enContent] = await Promise.all([
+          getContent('ar'),
+          getContent('en')
+        ]);
+        setContent({
+          ar: arContent,
+          en: enContent
+        });
+      } catch (error) {
+        console.error('Error loading content:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadContent();
   }, []);
 
   // Smooth scroll animation observer
@@ -276,14 +301,19 @@ function AppContent() {
     { code: '+263', name: 'Zimbabwe', nameAr: 'زيمبابوي', flag: '🇿🇼', iso: 'ZW' },
   ];
 
-  // Get dynamic content
-  const content = {
-    ar: getContent('ar'),
-    en: getContent('en')
-  };
-
-  const t = content[language];
+  const t = content ? content[language] : null;
   const isRTL = language === 'ar';
+
+  // Show loading state while content is being fetched
+  if (loading || !content) {
+    return (
+      <div className="App" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <div style={{ textAlign: 'center' }}>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Don't render navbar/footer on admin pages
   if (isAdminPage) {
