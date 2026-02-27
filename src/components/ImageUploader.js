@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import '../components/ImageUploader.css';
 
 function ImageUploader({ currentImage, onImageChange, onImageDelete }) {
