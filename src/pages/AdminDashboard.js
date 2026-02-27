@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ImageUploader from '../components/ImageUploader';
-import { getContent, saveContent } from '../firebaseHelpers';
 
 // Default data constants
 const DEFAULT_CAREERS = [
@@ -38,41 +37,45 @@ function AdminDashboard() {
   const [partners, setPartners] = useState([]);
 
   // Load all content from Firebase on mount
+  // Load all content from localStorage on mount
   useEffect(() => {
-    const loadAllContent = async () => {
+    const loadAllContent = () => {
       try {
         setLoading(true);
-        setFirebaseStatus('Loading from Firebase...');
+        setFirebaseStatus('Loading from localStorage...');
         
         // Load careers
-        const careersData = await getContent('careers');
-        if (careersData && careersData.jobs) {
-          setCareers(careersData.jobs);
+        const careersData = localStorage.getItem('careers');
+        if (careersData) {
+          setCareers(JSON.parse(careersData));
         } else {
           setCareers(DEFAULT_CAREERS);
+          localStorage.setItem('careers', JSON.stringify(DEFAULT_CAREERS));
         }
         
         // Load about info
-        const aboutData = await getContent('aboutInfo');
+        const aboutData = localStorage.getItem('aboutInfo');
         if (aboutData) {
-          setAboutInfo(aboutData);
+          setAboutInfo(JSON.parse(aboutData));
         } else {
-          setAboutInfo({
+          const defaultAbout = {
             descEn: 'MKPRIME is dedicated to providing specialized services designed to support students across East Asia (EA) and the Gulf Cooperation Council (GCC) regions. Our offerings are designed to empower students with solutions, including academic services and support, educational technology solutions, and resources that help students efficiently navigate their academic journeys.',
             descAr: 'نقدّم خدمات مخصصة لدعم الطلاب في الجامعات داخل شرق آسيا والخليج العربي، تشمل: الدعم الأكاديمي - تنظيم الوثائق وإدارتها - حلول تكنولوجيا تعليمية تساعد الطلاب على التكيف والنجاح في بيئة دراستهم. نسعى لتقديم تجربة تعليمية أكثر سلاسة وتنظيماً للطلاب الدوليين.',
             founded: '2023',
             team: '10-50',
             type: 'Digital Company',
             typeAr: 'شركة رقمية'
-          });
+          };
+          setAboutInfo(defaultAbout);
+          localStorage.setItem('aboutInfo', JSON.stringify(defaultAbout));
         }
         
         // Load services
-        const servicesData = await getContent('services');
-        if (servicesData && servicesData.services) {
-          setServices(servicesData.services);
+        const servicesData = localStorage.getItem('services');
+        if (servicesData) {
+          setServices(JSON.parse(servicesData));
         } else {
-          setServices([
+          const defaultServices = [
             {
               id: 1,
               titleEn: 'Academic Support',
@@ -105,41 +108,47 @@ function AdminDashboard() {
               descAr: 'نقدم برامج ذات جودة تعليمية عالية ونظام تعلم قوي',
               imageUrl: `${process.env.PUBLIC_URL}/quality-education.jpg`
             }
-          ]);
+          ];
+          setServices(defaultServices);
+          localStorage.setItem('services', JSON.stringify(defaultServices));
         }
         
         // Load hero content
-        const heroData = await getContent('heroContent');
+        const heroData = localStorage.getItem('heroContent');
         if (heroData) {
-          setHeroContent(heroData);
+          setHeroContent(JSON.parse(heroData));
         } else {
-          setHeroContent({
+          const defaultHero = {
             titleEn: 'Empowering Students Across EA & GCC',
             titleAr: 'نمكّن الطلاب في شرق آسيا ودول مجلس التعاون الخليجي',
             subtitleEn: 'Specialized services designed to support your academic journey',
             subtitleAr: 'نقدم خدمات متخصصة لدعم الطلاب في رحلتهم الأكاديمية'
-          });
+          };
+          setHeroContent(defaultHero);
+          localStorage.setItem('heroContent', JSON.stringify(defaultHero));
         }
         
         // Load partners
-        const partnersData = await getContent('partners');
-        if (partnersData && partnersData.partners) {
-          setPartners(partnersData.partners);
+        const partnersData = localStorage.getItem('partners');
+        if (partnersData) {
+          setPartners(JSON.parse(partnersData));
         } else {
-          setPartners([
+          const defaultPartners = [
             { id: 1, nameEn: 'MK Elite', nameAr: 'MK Elite', logoPath: 'partner 1.jpeg', order: 1 },
             { id: 2, nameEn: 'ALQAWASMI', nameAr: 'ALQAWASMI', logoPath: 'Partener 2.png', order: 2 },
             { id: 3, nameEn: 'Management & Science University', nameAr: 'Management & Science University', logoPath: 'parnter 3.jpeg', order: 3 },
             { id: 4, nameEn: 'UCSI University', nameAr: 'UCSI University', logoPath: 'parnter 4.jpeg', order: 4 },
             { id: 5, nameEn: 'Duy Tân University', nameAr: 'Duy Tân University', logoPath: 'partener 5.jpeg', order: 5 }
-          ]);
+          ];
+          setPartners(defaultPartners);
+          localStorage.setItem('partners', JSON.stringify(defaultPartners));
         }
         
-        setFirebaseStatus('✓ Connected to Firebase');
+        setFirebaseStatus('✓ Data loaded from localStorage');
         setLoading(false);
       } catch (error) {
-        console.error('Error loading content from Firebase:', error);
-        setFirebaseStatus('✗ Firebase connection error');
+        console.error('Error loading content from localStorage:', error);
+        setFirebaseStatus('✗ Error loading data');
         setLoading(false);
       }
     };
@@ -147,34 +156,34 @@ function AdminDashboard() {
     loadAllContent();
   }, []);
 
-  // Save to Firebase whenever data changes
+  // Save to localStorage whenever data changes
   useEffect(() => {
     if (!loading && careers.length > 0) {
-      saveContent('careers', { jobs: careers });
+      localStorage.setItem('careers', JSON.stringify(careers));
     }
   }, [careers, loading]);
 
   useEffect(() => {
     if (!loading && Object.keys(aboutInfo).length > 0) {
-      saveContent('aboutInfo', aboutInfo);
+      localStorage.setItem('aboutInfo', JSON.stringify(aboutInfo));
     }
   }, [aboutInfo, loading]);
 
   useEffect(() => {
     if (!loading && services.length > 0) {
-      saveContent('services', { services });
+      localStorage.setItem('services', JSON.stringify(services));
     }
   }, [services, loading]);
 
   useEffect(() => {
     if (!loading && Object.keys(heroContent).length > 0) {
-      saveContent('heroContent', heroContent);
+      localStorage.setItem('heroContent', JSON.stringify(heroContent));
     }
   }, [heroContent, loading]);
 
   useEffect(() => {
     if (!loading && partners.length > 0) {
-      saveContent('partners', { partners });
+      localStorage.setItem('partners', JSON.stringify(partners));
     }
   }, [partners, loading]);
 
