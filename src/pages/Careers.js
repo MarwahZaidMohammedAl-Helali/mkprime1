@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { getContent } from '../firebaseHelpers';
 
 function Careers({ language, content }) {
   const t = content[language];
@@ -28,29 +27,44 @@ function Careers({ language, content }) {
   }, [DEFAULT_CAREERS]);
   
   useEffect(() => {
-    const loadCareers = async () => {
+    const loadCareers = () => {
       try {
-        const careersData = await getContent('careers');
+        const careersData = localStorage.getItem('careers');
         
-        if (careersData && careersData.jobs && Array.isArray(careersData.jobs) && careersData.jobs.length > 0) {
-          setCareers(careersData.jobs);
+        if (careersData) {
+          const parsed = JSON.parse(careersData);
+          if (parsed && parsed.jobs && Array.isArray(parsed.jobs) && parsed.jobs.length > 0) {
+            setCareers(parsed.jobs);
+          } else {
+            console.log('No careers in localStorage, using defaults');
+            const defaults = initializeDefaultCareers();
+            setCareers(defaults);
+          }
         } else {
-          console.log('No careers in Firebase, using defaults');
+          console.log('No careers in localStorage, using defaults');
           const defaults = initializeDefaultCareers();
           setCareers(defaults);
         }
       } catch (error) {
-        console.error('Error loading careers from Firebase:', error);
+        console.error('Error loading careers from localStorage:', error);
         setCareers(DEFAULT_CAREERS);
       }
     };
     
     loadCareers();
     
-    // Reload every 5 seconds to get updates from admin panel
-    const interval = setInterval(loadCareers, 5000);
+    // Listen for storage events from admin panel
+    const handleStorageChange = (e) => {
+      if (e.key === 'careers') {
+        loadCareers();
+      }
+    };
     
-    return () => clearInterval(interval);
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, [DEFAULT_CAREERS, initializeDefaultCareers]);
 
   return (

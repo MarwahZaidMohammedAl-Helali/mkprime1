@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { getContent } from '../firebaseHelpers';
 
 function Services({ language, content }) {
   const t = content[language];
@@ -50,29 +49,44 @@ function Services({ language, content }) {
   }, [DEFAULT_SERVICES]);
   
   useEffect(() => {
-    const loadServices = async () => {
+    const loadServices = () => {
       try {
-        const servicesData = await getContent('services');
+        const servicesData = localStorage.getItem('services');
         
-        if (servicesData && servicesData.services && Array.isArray(servicesData.services) && servicesData.services.length > 0) {
-          setServices(servicesData.services);
+        if (servicesData) {
+          const parsed = JSON.parse(servicesData);
+          if (parsed && parsed.services && Array.isArray(parsed.services) && parsed.services.length > 0) {
+            setServices(parsed.services);
+          } else {
+            console.log('No services in localStorage, using defaults');
+            const defaults = initializeDefaultServices();
+            setServices(defaults);
+          }
         } else {
-          console.log('No services in Firebase, using defaults');
+          console.log('No services in localStorage, using defaults');
           const defaults = initializeDefaultServices();
           setServices(defaults);
         }
       } catch (error) {
-        console.error('Error loading services from Firebase:', error);
+        console.error('Error loading services from localStorage:', error);
         setServices(DEFAULT_SERVICES);
       }
     };
     
     loadServices();
     
-    // Reload every 5 seconds to get updates from admin panel
-    const interval = setInterval(loadServices, 5000);
+    // Listen for storage events from admin panel
+    const handleStorageChange = (e) => {
+      if (e.key === 'services') {
+        loadServices();
+      }
+    };
     
-    return () => clearInterval(interval);
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, [DEFAULT_SERVICES, initializeDefaultServices]);
 
   return (

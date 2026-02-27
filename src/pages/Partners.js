@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { getContent } from '../firebaseHelpers';
 
 function Partners({ language, content }) {
   const t = content[language];
@@ -71,43 +70,59 @@ function Partners({ language, content }) {
   }, [DEFAULT_PARTNERS]);
   
   useEffect(() => {
-    const loadPartners = async () => {
+    const loadPartners = () => {
       try {
-        const partnersData = await getContent('partners');
+        const partnersData = localStorage.getItem('partners');
         
-        if (partnersData && partnersData.partners && Array.isArray(partnersData.partners)) {
-          // Filter out invalid partners
-          const validPartners = partnersData.partners.filter(validatePartner);
+        if (partnersData) {
+          const parsed = JSON.parse(partnersData);
           
-          if (validPartners.length === 0) {
-            console.warn('No valid partners found, using defaults');
+          if (parsed && parsed.partners && Array.isArray(parsed.partners)) {
+            // Filter out invalid partners
+            const validPartners = parsed.partners.filter(validatePartner);
+            
+            if (validPartners.length === 0) {
+              console.warn('No valid partners found, using defaults');
+              const defaults = initializeDefaultPartners();
+              setPartners(defaults.sort((a, b) => a.order - b.order));
+              return;
+            }
+            
+            if (validPartners.length < parsed.partners.length) {
+              console.warn(`Filtered out ${parsed.partners.length - validPartners.length} invalid partners`);
+            }
+            
+            setPartners(validPartners.sort((a, b) => a.order - b.order));
+          } else {
+            console.log('No partners in localStorage, using defaults');
             const defaults = initializeDefaultPartners();
             setPartners(defaults.sort((a, b) => a.order - b.order));
-            return;
           }
-          
-          if (validPartners.length < partnersData.partners.length) {
-            console.warn(`Filtered out ${partnersData.partners.length - validPartners.length} invalid partners`);
-          }
-          
-          setPartners(validPartners.sort((a, b) => a.order - b.order));
         } else {
-          console.log('No partners in Firebase, using defaults');
+          console.log('No partners in localStorage, using defaults');
           const defaults = initializeDefaultPartners();
           setPartners(defaults.sort((a, b) => a.order - b.order));
         }
       } catch (error) {
-        console.error('Error loading partners from Firebase:', error);
+        console.error('Error loading partners from localStorage:', error);
         setPartners(DEFAULT_PARTNERS.sort((a, b) => a.order - b.order));
       }
     };
     
     loadPartners();
     
-    // Reload every 5 seconds to get updates from admin panel
-    const interval = setInterval(loadPartners, 5000);
+    // Listen for storage events from admin panel
+    const handleStorageChange = (e) => {
+      if (e.key === 'partners') {
+        loadPartners();
+      }
+    };
     
-    return () => clearInterval(interval);
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, [DEFAULT_PARTNERS, initializeDefaultPartners]);
 
   // Get partner name with placeholder for empty values
