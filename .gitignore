@@ -1,9 +1,6 @@
 # PHP Configuration (contains sensitive credentials)
 api/config.php
 
-# Dependencies
-node_modules/
-
 # Environment files
 .env
 .env.local

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ImageUploader from '../components/ImageUploader';
 import { getContent, saveContent } from '../firebaseHelpers';
@@ -18,8 +18,8 @@ function AdminDashboard() {
     setIsMobileMenuOpen(false);
   };
   
-  // Default data - using useMemo to avoid recreating on every render
-  const defaultCareers = useMemo(() => [
+  // Default data
+  const defaultCareers = [
     {
       id: 1,
       titleEn: 'Student Coordinator (Remote)',
@@ -29,7 +29,7 @@ function AdminDashboard() {
       descEn: 'Support students academically and socially while coordinating activities, managing data, and assisting with student engagement.',
       descAr: 'دعم الطلاب أكاديمياً واجتماعياً مع تنسيق الأنشطة وإدارة البيانات والمساعدة في مشاركة الطلاب.'
     }
-  ], []);
+  ];
 
   const [careers, setCareers] = useState([]);
   const [aboutInfo, setAboutInfo] = useState({});
@@ -145,7 +145,7 @@ function AdminDashboard() {
     };
     
     loadAllContent();
-  }, [defaultCareers]);
+  }, []);
 
   // Save to Firebase whenever data changes
   useEffect(() => {
