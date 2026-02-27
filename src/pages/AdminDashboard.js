@@ -3,6 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import ImageUploader from '../components/ImageUploader';
 import { getContent, saveContent } from '../firebaseHelpers';
 
+// Default data constants
+const DEFAULT_CAREERS = [
+  {
+    id: 1,
+    titleEn: 'Student Coordinator (Remote)',
+    titleAr: 'منسق الطلاب (عن بُعد)',
+    type: 'Flexible Hours',
+    typeAr: 'ساعات مرنة',
+    descEn: 'Support students academically and socially while coordinating activities, managing data, and assisting with student engagement.',
+    descAr: 'دعم الطلاب أكاديمياً واجتماعياً مع تنسيق الأنشطة وإدارة البيانات والمساعدة في مشاركة الطلاب.'
+  }
+];
+
 function AdminDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('careers');
@@ -18,19 +31,6 @@ function AdminDashboard() {
     setIsMobileMenuOpen(false);
   };
   
-  // Default data
-  const defaultCareers = [
-    {
-      id: 1,
-      titleEn: 'Student Coordinator (Remote)',
-      titleAr: 'منسق الطلاب (عن بُعد)',
-      type: 'Flexible Hours',
-      typeAr: 'ساعات مرنة',
-      descEn: 'Support students academically and socially while coordinating activities, managing data, and assisting with student engagement.',
-      descAr: 'دعم الطلاب أكاديمياً واجتماعياً مع تنسيق الأنشطة وإدارة البيانات والمساعدة في مشاركة الطلاب.'
-    }
-  ];
-
   const [careers, setCareers] = useState([]);
   const [aboutInfo, setAboutInfo] = useState({});
   const [services, setServices] = useState([]);
@@ -49,7 +49,7 @@ function AdminDashboard() {
         if (careersData && careersData.jobs) {
           setCareers(careersData.jobs);
         } else {
-          setCareers(defaultCareers);
+          setCareers(DEFAULT_CAREERS);
         }
         
         // Load about info
