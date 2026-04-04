@@ -1,14 +1,14 @@
-import { getContent } from './firebaseHelpers';
+import { getContent as getFirebaseContent } from './firebaseHelpers';
 
 // Content Manager - Loads dynamic content from Firebase with localStorage fallback
 export const loadDynamicContent = async () => {
   try {
     // Try to load from Firebase first
     const [careers, aboutInfo, services, heroContent] = await Promise.all([
-      getContent('careers'),
-      getContent('aboutInfo'),
-      getContent('services'),
-      getContent('heroContent')
+      getFirebaseContent('careers'),
+      getFirebaseContent('aboutInfo'),
+      getFirebaseContent('services'),
+      getFirebaseContent('heroContent')
     ]);
 
     return {
