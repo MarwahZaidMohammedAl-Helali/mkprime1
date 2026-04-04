@@ -4,7 +4,6 @@ import './App.css';
 import './animations.css';
 import './admin.css';
 import { getContent } from './contentManager';
-import { initializeDefaultContent } from './firebaseHelpers';
 
 // Import pages
 import Home from './pages/Home';
@@ -26,36 +25,37 @@ function AppContent() {
   const [language, setLanguage] = useState('en');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [content, setContent] = useState({ ar: {}, en: {} });
-  const [loading, setLoading] = useState(true);
+  const [contentLoading, setContentLoading] = useState(true);
   const location = useLocation();
 
   // Check if on admin pages
   const isAdminPage = location.pathname.startsWith('/admin');
 
-  // Initialize Firebase and load content
+  // Load content on mount
   useEffect(() => {
-    const initializeApp = async () => {
+    const loadContent = async () => {
       try {
-        await initializeDefaultContent();
+        setContentLoading(true);
         const [arContent, enContent] = await Promise.all([
           getContent('ar'),
           getContent('en')
         ]);
         setContent({ ar: arContent, en: enContent });
       } catch (error) {
-        console.error('Error initializing app:', error);
+        console.error('Error loading content:', error);
         // Fallback to empty content structure
-        setContent({
-          ar: { nav: {}, hero: {}, about: {}, services: {}, careers: {}, partners: {}, contact: {}, footer: {} },
-          en: { nav: {}, hero: {}, about: {}, services: {}, careers: {}, partners: {}, contact: {}, footer: {} }
-        });
+        setContent({ ar: {}, en: {} });
       } finally {
-        setLoading(false);
+        setContentLoading(false);
       }
     };
 
-    initializeApp();
-  }, []);
+    if (!isAdminPage) {
+      loadContent();
+    } else {
+      setContentLoading(false);
+    }
+  }, [isAdminPage]);
 
   // Smooth scroll animation observer
   useEffect(() => {
@@ -302,20 +302,13 @@ function AppContent() {
   const t = content[language] || {};
   const isRTL = language === 'ar';
 
-  // Show loading screen while initializing
-  if (loading && !isAdminPage) {
+  // Show loading while content is being fetched
+  if (contentLoading && !isAdminPage) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh',
-        fontSize: '18px',
-        color: '#666'
-      }}>
-        <div>
-          <div style={{ marginBottom: '20px', textAlign: 'center' }}>⏳</div>
-          <div>Loading MKPRIME...</div>
+      <div className="App" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '24px', marginBottom: '10px' }}>⏳</div>
+          <div>Loading...</div>
         </div>
       </div>
     );

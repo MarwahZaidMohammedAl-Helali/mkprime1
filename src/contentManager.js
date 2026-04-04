@@ -1,39 +1,38 @@
-import { getContent as getFirebaseContent } from './firebaseHelpers';
+import contentService from './services/contentService';
 
-// Content Manager - Loads dynamic content from Firebase with localStorage fallback
+// Content Manager - Loads dynamic content from MongoDB with localStorage fallback
 export const loadDynamicContent = async () => {
   try {
-    // Try to load from Firebase first
-    const [careers, aboutInfo, services, heroContent] = await Promise.all([
-      getFirebaseContent('careers'),
-      getFirebaseContent('aboutInfo'),
-      getFirebaseContent('services'),
-      getFirebaseContent('heroContent')
-    ]);
-
+    const content = await contentService.getAllContent();
+    
+    // Extract data from MongoDB format
     return {
-      careers: careers?.jobs || [],
-      aboutInfo: aboutInfo || {},
-      services: services?.services || [],
-      heroContent: heroContent || {}
+      careers: content.careers?.jobs || [],
+      aboutInfo: content.aboutInfo || {},
+      services: content.services?.services || [],
+      heroContent: content.heroContent || {},
+      partners: content.partners?.partners || []
     };
   } catch (error) {
-    console.error('Error loading from Firebase, falling back to localStorage:', error);
+    console.error('Error loading content from MongoDB, using localStorage fallback:', error);
     
     // Fallback to localStorage
     const careers = localStorage.getItem('careers');
     const aboutInfo = localStorage.getItem('aboutInfo');
     const services = localStorage.getItem('services');
     const heroContent = localStorage.getItem('heroContent');
+    const partners = localStorage.getItem('partners');
 
     const parsedCareers = careers ? JSON.parse(careers) : null;
     const parsedServices = services ? JSON.parse(services) : null;
+    const parsedPartners = partners ? JSON.parse(partners) : null;
 
     return {
       careers: parsedCareers?.jobs || parsedCareers || [],
       aboutInfo: aboutInfo ? JSON.parse(aboutInfo) : {},
       services: parsedServices?.services || parsedServices || [],
-      heroContent: heroContent ? JSON.parse(heroContent) : {}
+      heroContent: heroContent ? JSON.parse(heroContent) : {},
+      partners: parsedPartners?.partners || parsedPartners || []
     };
   }
 };

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ImageUploader from '../components/ImageUploader';
-import { getContent, saveContent, subscribeToContent } from '../firebaseHelpers';
+import contentService from '../services/contentService';
 
 // Default data constants
 const DEFAULT_CAREERS = [
@@ -38,34 +38,110 @@ function AdminDashboard() {
   const [partners, setPartners] = useState([]);
 
   // Load all content from Firebase on mount
-  // Load all content from Firebase on mount
+  // Load all content from MongoDB on mount
   useEffect(() => {
     const loadAllContent = async () => {
       try {
         setLoading(true);
-        setAdminStatus('Loading from Firebase...');
+        setAdminStatus('Loading admin data...');
         
-        // Load all content from Firebase
-        const [careersData, aboutData, servicesData, heroData, partnersData] = await Promise.all([
-          getContent('careers'),
-          getContent('services'),
-          getContent('partners'),
-          getContent('aboutInfo'),
-          getContent('heroContent')
-        ]);
+        const content = await contentService.getAllContent();
         
-        // Set state with loaded data
-        setCareers(careersData?.jobs || DEFAULT_CAREERS);
-        setServices(servicesData?.services || []);
-        setPartners(partnersData?.partners || []);
-        setAboutInfo(aboutData || {});
-        setHeroContent(heroData || {});
+        // Load careers
+        if (content.careers && content.careers.jobs && Array.isArray(content.careers.jobs)) {
+          setCareers(content.careers.jobs);
+        } else {
+          setCareers(DEFAULT_CAREERS);
+        }
         
-        setAdminStatus('✓ Connected to Firebase');
+        // Load about info
+        if (content.aboutInfo && Object.keys(content.aboutInfo).length > 0) {
+          setAboutInfo(content.aboutInfo);
+        } else {
+          const defaultAbout = {
+            descEn: 'MKPRIME is dedicated to providing specialized services designed to support students across East Asia (EA) and the Gulf Cooperation Council (GCC) regions. Our offerings are designed to empower students with solutions, including academic services and support, educational technology solutions, and resources that help students efficiently navigate their academic journeys.',
+            descAr: 'نقدّم خدمات مخصصة لدعم الطلاب في الجامعات داخل شرق آسيا والخليج العربي، تشمل: الدعم الأكاديمي - تنظيم الوثائق وإدارتها - حلول تكنولوجيا تعليمية تساعد الطلاب على التكيف والنجاح في بيئة دراستهم. نسعى لتقديم تجربة تعليمية أكثر سلاسة وتنظيماً للطلاب الدوليين.',
+            founded: '2023',
+            team: '10-50',
+            type: 'Digital Company',
+            typeAr: 'شركة رقمية'
+          };
+          setAboutInfo(defaultAbout);
+        }
+        
+        // Load services
+        if (content.services && content.services.services && Array.isArray(content.services.services)) {
+          setServices(content.services.services);
+        } else {
+          const defaultServices = [
+            {
+              id: 1,
+              titleEn: 'Academic Support',
+              titleAr: 'الدعم الأكاديمي',
+              descEn: 'Comprehensive support to help students excel in their studies',
+              descAr: 'دعم شامل لمساعدة الطلاب على التفوق في دراستهم',
+              imageUrl: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&q=80'
+            },
+            {
+              id: 2,
+              titleEn: 'Educational Consulting',
+              titleAr: 'الاستشارات التعليمية',
+              descEn: 'Expert guidance for academic planning and career development',
+              descAr: 'إرشادات الخبراء للتخطيط الأكاديمي والتطوير الوظيفي',
+              imageUrl: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&q=80'
+            },
+            {
+              id: 3,
+              titleEn: 'Edu Technology Solutions',
+              titleAr: 'حلول التكنولوجيا التعليمية',
+              descEn: 'Innovative tech tools and resources for academic success',
+              descAr: 'أدوات وموارد تقنية مبتكرة للنجاح الأكاديمي',
+              imageUrl: 'https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=400&q=80'
+            },
+            {
+              id: 4,
+              titleEn: 'Quality Education Programs',
+              titleAr: 'برامج تعليمية عالية الجودة',
+              descEn: 'We offer programs with a high quality of education and a strong learning system',
+              descAr: 'نقدم برامج ذات جودة تعليمية عالية ونظام تعلم قوي',
+              imageUrl: `${process.env.PUBLIC_URL}/quality-education.jpg`
+            }
+          ];
+          setServices(defaultServices);
+        }
+        
+        // Load hero content
+        if (content.heroContent && Object.keys(content.heroContent).length > 0) {
+          setHeroContent(content.heroContent);
+        } else {
+          const defaultHero = {
+            titleEn: 'Empowering Students Across EA & GCC',
+            titleAr: 'نمكّن الطلاب في شرق آسيا ودول مجلس التعاون الخليجي',
+            subtitleEn: 'Specialized services designed to support your academic journey',
+            subtitleAr: 'نقدم خدمات متخصصة لدعم الطلاب في رحلتهم الأكاديمية'
+          };
+          setHeroContent(defaultHero);
+        }
+        
+        // Load partners
+        if (content.partners && content.partners.partners && Array.isArray(content.partners.partners)) {
+          setPartners(content.partners.partners);
+        } else {
+          const defaultPartners = [
+            { id: 1, nameEn: 'MK Elite', nameAr: 'MK Elite', logoPath: 'partner 1.jpeg', order: 1 },
+            { id: 2, nameEn: 'ALQAWASMI', nameAr: 'ALQAWASMI', logoPath: 'Partener 2.png', order: 2 },
+            { id: 3, nameEn: 'Management & Science University', nameAr: 'Management & Science University', logoPath: 'parnter 3.jpeg', order: 3 },
+            { id: 4, nameEn: 'UCSI University', nameAr: 'UCSI University', logoPath: 'parnter 4.jpeg', order: 4 },
+            { id: 5, nameEn: 'Duy Tân University', nameAr: 'Duy Tân University', logoPath: 'partener 5.jpeg', order: 5 }
+          ];
+          setPartners(defaultPartners);
+        }
+        
+        setAdminStatus('✓ Connected to MongoDB');
         setLoading(false);
       } catch (error) {
-        console.error('Error loading content from Firebase:', error);
-        setAdminStatus('✗ Firebase connection failed');
+        console.error('Error loading content from MongoDB:', error);
+        setAdminStatus('⚠️ Using local storage (MongoDB unavailable)');
         
         // Fallback to localStorage
         try {
@@ -76,11 +152,31 @@ function AdminDashboard() {
           } else {
             setCareers(DEFAULT_CAREERS);
           }
-          setAdminStatus('⚠️ Using local storage (offline)');
+          
+          const aboutData = localStorage.getItem('aboutInfo');
+          if (aboutData) {
+            setAboutInfo(JSON.parse(aboutData));
+          }
+          
+          const servicesData = localStorage.getItem('services');
+          if (servicesData) {
+            const parsed = JSON.parse(servicesData);
+            setServices(parsed?.services || parsed || []);
+          }
+          
+          const heroData = localStorage.getItem('heroContent');
+          if (heroData) {
+            setHeroContent(JSON.parse(heroData));
+          }
+          
+          const partnersData = localStorage.getItem('partners');
+          if (partnersData) {
+            const parsed = JSON.parse(partnersData);
+            setPartners(parsed?.partners || parsed || []);
+          }
         } catch (localError) {
           console.error('Error loading from localStorage:', localError);
-          setCareers(DEFAULT_CAREERS);
-          setAdminStatus('✗ Error loading data');
+          setAdminStatus('✗ Error loading admin data');
         }
         
         setLoading(false);
@@ -88,82 +184,77 @@ function AdminDashboard() {
     };
     
     loadAllContent();
-
-    // Set up real-time listeners for Firebase updates
-    const unsubscribers = [];
-    
-    try {
-      // Listen for careers updates
-      const unsubCareers = subscribeToContent('careers', (data) => {
-        setCareers(data?.jobs || []);
-      });
-      unsubscribers.push(unsubCareers);
-
-      // Listen for services updates
-      const unsubServices = subscribeToContent('services', (data) => {
-        setServices(data?.services || []);
-      });
-      unsubscribers.push(unsubServices);
-
-      // Listen for partners updates
-      const unsubPartners = subscribeToContent('partners', (data) => {
-        setPartners(data?.partners || []);
-      });
-      unsubscribers.push(unsubPartners);
-
-      // Listen for about info updates
-      const unsubAbout = subscribeToContent('aboutInfo', (data) => {
-        setAboutInfo(data || {});
-      });
-      unsubscribers.push(unsubAbout);
-
-      // Listen for hero content updates
-      const unsubHero = subscribeToContent('heroContent', (data) => {
-        setHeroContent(data || {});
-      });
-      unsubscribers.push(unsubHero);
-    } catch (error) {
-      console.error('Error setting up Firebase listeners:', error);
-    }
-    
-    // Cleanup listeners on unmount
-    return () => {
-      unsubscribers.forEach(unsubscribe => {
-        if (typeof unsubscribe === 'function') {
-          unsubscribe();
-        }
-      });
-    };
   }, []);
 
-  // Save to Firebase whenever data changes
+  // Save to MongoDB whenever data changes (with localStorage backup)
   useEffect(() => {
     if (!loading && careers.length > 0) {
-      saveContent('careers', { jobs: careers });
+      const saveData = async () => {
+        try {
+          await contentService.updateCareers(careers);
+        } catch (error) {
+          console.error('Error saving careers to MongoDB:', error);
+          // Fallback to localStorage
+          localStorage.setItem('careers', JSON.stringify({ jobs: careers }));
+        }
+      };
+      saveData();
     }
   }, [careers, loading]);
 
   useEffect(() => {
     if (!loading && Object.keys(aboutInfo).length > 0) {
-      saveContent('aboutInfo', aboutInfo);
+      const saveData = async () => {
+        try {
+          await contentService.updateAboutInfo(aboutInfo);
+        } catch (error) {
+          console.error('Error saving about info to MongoDB:', error);
+          localStorage.setItem('aboutInfo', JSON.stringify(aboutInfo));
+        }
+      };
+      saveData();
     }
   }, [aboutInfo, loading]);
 
   useEffect(() => {
     if (!loading && services.length > 0) {
-      saveContent('services', { services: services });
+      const saveData = async () => {
+        try {
+          await contentService.updateServices(services);
+        } catch (error) {
+          console.error('Error saving services to MongoDB:', error);
+          localStorage.setItem('services', JSON.stringify({ services: services }));
+        }
+      };
+      saveData();
     }
   }, [services, loading]);
 
   useEffect(() => {
     if (!loading && Object.keys(heroContent).length > 0) {
-      saveContent('heroContent', heroContent);
+      const saveData = async () => {
+        try {
+          await contentService.updateHeroContent(heroContent);
+        } catch (error) {
+          console.error('Error saving hero content to MongoDB:', error);
+          localStorage.setItem('heroContent', JSON.stringify(heroContent));
+        }
+      };
+      saveData();
     }
   }, [heroContent, loading]);
 
   useEffect(() => {
     if (!loading && partners.length > 0) {
-      saveContent('partners', { partners: partners });
+      const saveData = async () => {
+        try {
+          await contentService.updatePartners(partners);
+        } catch (error) {
+          console.error('Error saving partners to MongoDB:', error);
+          localStorage.setItem('partners', JSON.stringify({ partners: partners }));
+        }
+      };
+      saveData();
     }
   }, [partners, loading]);
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { subscribeToContent } from '../firebaseHelpers';
+import contentService from '../services/contentService';
 
 function Careers({ language, content }) {
   const t = content[language];
@@ -28,24 +28,29 @@ function Careers({ language, content }) {
   }, [DEFAULT_CAREERS]);
   
   useEffect(() => {
-    // Set up Firebase real-time listener
-    const unsubscribe = subscribeToContent('careers', (data) => {
-      if (data && data.jobs && Array.isArray(data.jobs) && data.jobs.length > 0) {
-        setCareers(data.jobs);
-      } else {
-        console.log('No careers in Firebase, using defaults');
-        const defaults = initializeDefaultCareers();
-        setCareers(defaults);
-      }
-    });
-
-    // Cleanup listener on unmount
-    return () => {
-      if (typeof unsubscribe === 'function') {
-        unsubscribe();
+    const loadCareers = async () => {
+      try {
+        const careersData = await contentService.getCareers();
+        if (careersData && careersData.jobs && Array.isArray(careersData.jobs) && careersData.jobs.length > 0) {
+          setCareers(careersData.jobs);
+        } else {
+          console.log('No careers found, using defaults');
+          const defaults = initializeDefaultCareers();
+          setCareers(defaults);
+        }
+      } catch (error) {
+        console.error('Error loading careers:', error);
+        setCareers(DEFAULT_CAREERS);
       }
     };
-  }, [initializeDefaultCareers]);
+    
+    loadCareers();
+    
+    // Refresh every 30 seconds to get updates
+    const interval = setInterval(loadCareers, 30000);
+    
+    return () => clearInterval(interval);
+  }, [DEFAULT_CAREERS, initializeDefaultCareers]);
 
   return (
     <section className="careers page-section scroll-animate">
