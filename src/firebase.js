@@ -2,14 +2,14 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 
 // Your Firebase configuration
-// You'll need to replace this with your actual Firebase config from Firebase Console
 const firebaseConfig = {
-  apiKey: "your-api-key",
-  authDomain: "your-project.firebaseapp.com",
-  projectId: "your-project-id",
-  storageBucket: "your-project.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "your-app-id"
+  apiKey: "AIzaSyB75YFJBJ185VeHloN7Q-ERvH3QJfjYuJM",
+  authDomain: "mkprime-website.firebaseapp.com",
+  projectId: "mkprime-website",
+  storageBucket: "mkprime-website.firebasestorage.app",
+  messagingSenderId: "186933738659",
+  appId: "1:186933738659:web:778e8472ddda6508bcd316",
+  measurementId: "G-S1S00KKTCR"
 };
 
 // Initialize Firebase
