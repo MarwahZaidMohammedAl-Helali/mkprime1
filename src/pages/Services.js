@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import contentService from '../services/contentService';
 
 function Services({ language, content }) {
   const t = content[language];
@@ -50,29 +49,44 @@ function Services({ language, content }) {
   }, [DEFAULT_SERVICES]);
   
   useEffect(() => {
-    const loadServices = async () => {
+    const loadServices = () => {
       try {
-        const servicesData = await contentService.getServices();
+        const servicesData = localStorage.getItem('services');
         
-        if (servicesData && servicesData.services && Array.isArray(servicesData.services) && servicesData.services.length > 0) {
-          setServices(servicesData.services);
+        if (servicesData) {
+          const parsed = JSON.parse(servicesData);
+          if (parsed && parsed.services && Array.isArray(parsed.services) && parsed.services.length > 0) {
+            setServices(parsed.services);
+          } else {
+            console.log('No services in localStorage, using defaults');
+            const defaults = initializeDefaultServices();
+            setServices(defaults);
+          }
         } else {
-          console.log('No services found, using defaults');
+          console.log('No services in localStorage, using defaults');
           const defaults = initializeDefaultServices();
           setServices(defaults);
         }
       } catch (error) {
-        console.error('Error loading services:', error);
+        console.error('Error loading services from localStorage:', error);
         setServices(DEFAULT_SERVICES);
       }
     };
     
     loadServices();
     
-    // Refresh every 30 seconds to get updates
-    const interval = setInterval(loadServices, 30000);
+    // Listen for storage events from admin panel
+    const handleStorageChange = (e) => {
+      if (e.key === 'services') {
+        loadServices();
+      }
+    };
     
-    return () => clearInterval(interval);
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, [DEFAULT_SERVICES, initializeDefaultServices]);
 
   return (

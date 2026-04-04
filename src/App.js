@@ -24,38 +24,10 @@ function ProtectedRoute({ children }) {
 function AppContent() {
   const [language, setLanguage] = useState('en');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [content, setContent] = useState({ ar: {}, en: {} });
-  const [contentLoading, setContentLoading] = useState(true);
   const location = useLocation();
 
   // Check if on admin pages
   const isAdminPage = location.pathname.startsWith('/admin');
-
-  // Load content on mount
-  useEffect(() => {
-    const loadContent = async () => {
-      try {
-        setContentLoading(true);
-        const [arContent, enContent] = await Promise.all([
-          getContent('ar'),
-          getContent('en')
-        ]);
-        setContent({ ar: arContent, en: enContent });
-      } catch (error) {
-        console.error('Error loading content:', error);
-        // Fallback to empty content structure
-        setContent({ ar: {}, en: {} });
-      } finally {
-        setContentLoading(false);
-      }
-    };
-
-    if (!isAdminPage) {
-      loadContent();
-    } else {
-      setContentLoading(false);
-    }
-  }, [isAdminPage]);
 
   // Smooth scroll animation observer
   useEffect(() => {
@@ -299,20 +271,13 @@ function AppContent() {
   ];
 
   // Get dynamic content
-  const t = content[language] || {};
-  const isRTL = language === 'ar';
+  const content = {
+    ar: getContent('ar'),
+    en: getContent('en')
+  };
 
-  // Show loading while content is being fetched
-  if (contentLoading && !isAdminPage) {
-    return (
-      <div className="App" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '24px', marginBottom: '10px' }}>⏳</div>
-          <div>Loading...</div>
-        </div>
-      </div>
-    );
-  }
+  const t = content[language];
+  const isRTL = language === 'ar';
 
   // Don't render navbar/footer on admin pages
   if (isAdminPage) {

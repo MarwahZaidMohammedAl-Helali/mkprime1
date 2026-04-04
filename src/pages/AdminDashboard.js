@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ImageUploader from '../components/ImageUploader';
-import contentService from '../services/contentService';
 
 // Default data constants
 const DEFAULT_CAREERS = [
@@ -38,25 +37,37 @@ function AdminDashboard() {
   const [partners, setPartners] = useState([]);
 
   // Load all content from Firebase on mount
-  // Load all content from MongoDB on mount
+  // Load all content from localStorage on mount
   useEffect(() => {
-    const loadAllContent = async () => {
+    const loadAllContent = () => {
       try {
         setLoading(true);
         setAdminStatus('Loading admin data...');
         
-        const content = await contentService.getAllContent();
-        
         // Load careers
-        if (content.careers && content.careers.jobs && Array.isArray(content.careers.jobs)) {
-          setCareers(content.careers.jobs);
+        const careersData = localStorage.getItem('careers');
+        if (careersData) {
+          const parsed = JSON.parse(careersData);
+          // Handle both old format (direct array) and new format (object with jobs property)
+          if (Array.isArray(parsed)) {
+            setCareers(parsed);
+            // Convert to new format
+            localStorage.setItem('careers', JSON.stringify({ jobs: parsed }));
+          } else if (parsed.jobs && Array.isArray(parsed.jobs)) {
+            setCareers(parsed.jobs);
+          } else {
+            setCareers(DEFAULT_CAREERS);
+            localStorage.setItem('careers', JSON.stringify({ jobs: DEFAULT_CAREERS }));
+          }
         } else {
           setCareers(DEFAULT_CAREERS);
+          localStorage.setItem('careers', JSON.stringify({ jobs: DEFAULT_CAREERS }));
         }
         
         // Load about info
-        if (content.aboutInfo && Object.keys(content.aboutInfo).length > 0) {
-          setAboutInfo(content.aboutInfo);
+        const aboutData = localStorage.getItem('aboutInfo');
+        if (aboutData) {
+          setAboutInfo(JSON.parse(aboutData));
         } else {
           const defaultAbout = {
             descEn: 'MKPRIME is dedicated to providing specialized services designed to support students across East Asia (EA) and the Gulf Cooperation Council (GCC) regions. Our offerings are designed to empower students with solutions, including academic services and support, educational technology solutions, and resources that help students efficiently navigate their academic journeys.',
@@ -67,11 +78,58 @@ function AdminDashboard() {
             typeAr: 'شركة رقمية'
           };
           setAboutInfo(defaultAbout);
+          localStorage.setItem('aboutInfo', JSON.stringify(defaultAbout));
         }
         
         // Load services
-        if (content.services && content.services.services && Array.isArray(content.services.services)) {
-          setServices(content.services.services);
+        const servicesData = localStorage.getItem('services');
+        if (servicesData) {
+          const parsed = JSON.parse(servicesData);
+          // Handle both old format (direct array) and new format (object with services property)
+          if (Array.isArray(parsed)) {
+            setServices(parsed);
+            // Convert to new format
+            localStorage.setItem('services', JSON.stringify({ services: parsed }));
+          } else if (parsed.services && Array.isArray(parsed.services)) {
+            setServices(parsed.services);
+          } else {
+            const defaultServices = [
+              {
+                id: 1,
+                titleEn: 'Academic Support',
+                titleAr: 'الدعم الأكاديمي',
+                descEn: 'Comprehensive support to help students excel in their studies',
+                descAr: 'دعم شامل لمساعدة الطلاب على التفوق في دراستهم',
+                imageUrl: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&q=80'
+              },
+              {
+                id: 2,
+                titleEn: 'Educational Consulting',
+                titleAr: 'الاستشارات التعليمية',
+                descEn: 'Expert guidance for academic planning and career development',
+                descAr: 'إرشادات الخبراء للتخطيط الأكاديمي والتطوير الوظيفي',
+                imageUrl: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&q=80'
+              },
+              {
+                id: 3,
+                titleEn: 'Edu Technology Solutions',
+                titleAr: 'حلول التكنولوجيا التعليمية',
+                descEn: 'Innovative tech tools and resources for academic success',
+                descAr: 'أدوات وموارد تقنية مبتكرة للنجاح الأكاديمي',
+                imageUrl: 'https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=400&q=80'
+              },
+              {
+                id: 4,
+                titleEn: 'Quality Education Programs',
+                titleAr: 'برامج تعليمية عالية الجودة',
+                descEn: 'We offer programs with a high quality of education and a strong learning system',
+                descAr: 'نقدم برامج ذات جودة تعليمية عالية ونظام تعلم قوي',
+                imageUrl: `${process.env.PUBLIC_URL}/quality-education.jpg`
+              }
+            ];
+            setServices(defaultServices);
+            localStorage.setItem('services', JSON.stringify({ services: defaultServices }));
+          }
         } else {
           const defaultServices = [
             {
@@ -108,11 +166,13 @@ function AdminDashboard() {
             }
           ];
           setServices(defaultServices);
+          localStorage.setItem('services', JSON.stringify({ services: defaultServices }));
         }
         
         // Load hero content
-        if (content.heroContent && Object.keys(content.heroContent).length > 0) {
-          setHeroContent(content.heroContent);
+        const heroData = localStorage.getItem('heroContent');
+        if (heroData) {
+          setHeroContent(JSON.parse(heroData));
         } else {
           const defaultHero = {
             titleEn: 'Empowering Students Across EA & GCC',
@@ -121,11 +181,31 @@ function AdminDashboard() {
             subtitleAr: 'نقدم خدمات متخصصة لدعم الطلاب في رحلتهم الأكاديمية'
           };
           setHeroContent(defaultHero);
+          localStorage.setItem('heroContent', JSON.stringify(defaultHero));
         }
         
         // Load partners
-        if (content.partners && content.partners.partners && Array.isArray(content.partners.partners)) {
-          setPartners(content.partners.partners);
+        const partnersData = localStorage.getItem('partners');
+        if (partnersData) {
+          const parsed = JSON.parse(partnersData);
+          // Handle both old format (direct array) and new format (object with partners property)
+          if (Array.isArray(parsed)) {
+            setPartners(parsed);
+            // Convert to new format
+            localStorage.setItem('partners', JSON.stringify({ partners: parsed }));
+          } else if (parsed.partners && Array.isArray(parsed.partners)) {
+            setPartners(parsed.partners);
+          } else {
+            const defaultPartners = [
+              { id: 1, nameEn: 'MK Elite', nameAr: 'MK Elite', logoPath: 'partner 1.jpeg', order: 1 },
+              { id: 2, nameEn: 'ALQAWASMI', nameAr: 'ALQAWASMI', logoPath: 'Partener 2.png', order: 2 },
+              { id: 3, nameEn: 'Management & Science University', nameAr: 'Management & Science University', logoPath: 'parnter 3.jpeg', order: 3 },
+              { id: 4, nameEn: 'UCSI University', nameAr: 'UCSI University', logoPath: 'parnter 4.jpeg', order: 4 },
+              { id: 5, nameEn: 'Duy Tân University', nameAr: 'Duy Tân University', logoPath: 'partener 5.jpeg', order: 5 }
+            ];
+            setPartners(defaultPartners);
+            localStorage.setItem('partners', JSON.stringify({ partners: defaultPartners }));
+          }
         } else {
           const defaultPartners = [
             { id: 1, nameEn: 'MK Elite', nameAr: 'MK Elite', logoPath: 'partner 1.jpeg', order: 1 },
@@ -135,50 +215,14 @@ function AdminDashboard() {
             { id: 5, nameEn: 'Duy Tân University', nameAr: 'Duy Tân University', logoPath: 'partener 5.jpeg', order: 5 }
           ];
           setPartners(defaultPartners);
+          localStorage.setItem('partners', JSON.stringify({ partners: defaultPartners }));
         }
         
-        setAdminStatus('✓ Connected to MongoDB');
+        setAdminStatus('✓ Admin panel ready');
         setLoading(false);
       } catch (error) {
-        console.error('Error loading content from MongoDB:', error);
-        setAdminStatus('⚠️ Using local storage (MongoDB unavailable)');
-        
-        // Fallback to localStorage
-        try {
-          const careersData = localStorage.getItem('careers');
-          if (careersData) {
-            const parsed = JSON.parse(careersData);
-            setCareers(parsed?.jobs || parsed || DEFAULT_CAREERS);
-          } else {
-            setCareers(DEFAULT_CAREERS);
-          }
-          
-          const aboutData = localStorage.getItem('aboutInfo');
-          if (aboutData) {
-            setAboutInfo(JSON.parse(aboutData));
-          }
-          
-          const servicesData = localStorage.getItem('services');
-          if (servicesData) {
-            const parsed = JSON.parse(servicesData);
-            setServices(parsed?.services || parsed || []);
-          }
-          
-          const heroData = localStorage.getItem('heroContent');
-          if (heroData) {
-            setHeroContent(JSON.parse(heroData));
-          }
-          
-          const partnersData = localStorage.getItem('partners');
-          if (partnersData) {
-            const parsed = JSON.parse(partnersData);
-            setPartners(parsed?.partners || parsed || []);
-          }
-        } catch (localError) {
-          console.error('Error loading from localStorage:', localError);
-          setAdminStatus('✗ Error loading admin data');
-        }
-        
+        console.error('Error loading content from localStorage:', error);
+        setAdminStatus('✗ Error loading admin data');
         setLoading(false);
       }
     };
@@ -186,75 +230,40 @@ function AdminDashboard() {
     loadAllContent();
   }, []);
 
-  // Save to MongoDB whenever data changes (with localStorage backup)
+  // Save to localStorage whenever data changes (in format expected by website)
   useEffect(() => {
     if (!loading && careers.length > 0) {
-      const saveData = async () => {
-        try {
-          await contentService.updateCareers(careers);
-        } catch (error) {
-          console.error('Error saving careers to MongoDB:', error);
-          // Fallback to localStorage
-          localStorage.setItem('careers', JSON.stringify({ jobs: careers }));
-        }
-      };
-      saveData();
+      localStorage.setItem('careers', JSON.stringify({ jobs: careers }));
+      // Trigger storage event for real-time sync
+      window.dispatchEvent(new StorageEvent('storage', { key: 'careers' }));
     }
   }, [careers, loading]);
 
   useEffect(() => {
     if (!loading && Object.keys(aboutInfo).length > 0) {
-      const saveData = async () => {
-        try {
-          await contentService.updateAboutInfo(aboutInfo);
-        } catch (error) {
-          console.error('Error saving about info to MongoDB:', error);
-          localStorage.setItem('aboutInfo', JSON.stringify(aboutInfo));
-        }
-      };
-      saveData();
+      localStorage.setItem('aboutInfo', JSON.stringify(aboutInfo));
+      window.dispatchEvent(new StorageEvent('storage', { key: 'aboutInfo' }));
     }
   }, [aboutInfo, loading]);
 
   useEffect(() => {
     if (!loading && services.length > 0) {
-      const saveData = async () => {
-        try {
-          await contentService.updateServices(services);
-        } catch (error) {
-          console.error('Error saving services to MongoDB:', error);
-          localStorage.setItem('services', JSON.stringify({ services: services }));
-        }
-      };
-      saveData();
+      localStorage.setItem('services', JSON.stringify({ services: services }));
+      window.dispatchEvent(new StorageEvent('storage', { key: 'services' }));
     }
   }, [services, loading]);
 
   useEffect(() => {
     if (!loading && Object.keys(heroContent).length > 0) {
-      const saveData = async () => {
-        try {
-          await contentService.updateHeroContent(heroContent);
-        } catch (error) {
-          console.error('Error saving hero content to MongoDB:', error);
-          localStorage.setItem('heroContent', JSON.stringify(heroContent));
-        }
-      };
-      saveData();
+      localStorage.setItem('heroContent', JSON.stringify(heroContent));
+      window.dispatchEvent(new StorageEvent('storage', { key: 'heroContent' }));
     }
   }, [heroContent, loading]);
 
   useEffect(() => {
     if (!loading && partners.length > 0) {
-      const saveData = async () => {
-        try {
-          await contentService.updatePartners(partners);
-        } catch (error) {
-          console.error('Error saving partners to MongoDB:', error);
-          localStorage.setItem('partners', JSON.stringify({ partners: partners }));
-        }
-      };
-      saveData();
+      localStorage.setItem('partners', JSON.stringify({ partners: partners }));
+      window.dispatchEvent(new StorageEvent('storage', { key: 'partners' }));
     }
   }, [partners, loading]);
 

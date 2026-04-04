@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import contentService from '../services/contentService';
 
 function Home({ language, content }) {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -52,13 +51,18 @@ function Home({ language, content }) {
     },
   ], []);
 
-  // Load partners from MongoDB
+  // Load partners from localStorage
   useEffect(() => {
-    const loadPartners = async () => {
+    const loadPartners = () => {
       try {
-        const partnersData = await contentService.getPartners();
-        if (partnersData && partnersData.partners && Array.isArray(partnersData.partners) && partnersData.partners.length > 0) {
-          setPartners(partnersData.partners.sort((a, b) => a.order - b.order).slice(0, 5));
+        const partnersData = localStorage.getItem('partners');
+        if (partnersData) {
+          const parsed = JSON.parse(partnersData);
+          if (parsed && parsed.partners && Array.isArray(parsed.partners) && parsed.partners.length > 0) {
+            setPartners(parsed.partners.sort((a, b) => a.order - b.order).slice(0, 5));
+          } else {
+            setPartners(DEFAULT_PARTNERS);
+          }
         } else {
           setPartners(DEFAULT_PARTNERS);
         }
@@ -70,10 +74,18 @@ function Home({ language, content }) {
     
     loadPartners();
     
-    // Refresh every 30 seconds to get updates
-    const interval = setInterval(loadPartners, 30000);
+    // Listen for storage events from admin panel
+    const handleStorageChange = (e) => {
+      if (e.key === 'partners') {
+        loadPartners();
+      }
+    };
     
-    return () => clearInterval(interval);
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, [DEFAULT_PARTNERS]);
 
   // Auto-slide every 5 seconds
