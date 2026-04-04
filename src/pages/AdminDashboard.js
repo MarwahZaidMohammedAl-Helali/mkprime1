@@ -47,10 +47,21 @@ function AdminDashboard() {
         // Load careers
         const careersData = localStorage.getItem('careers');
         if (careersData) {
-          setCareers(JSON.parse(careersData));
+          const parsed = JSON.parse(careersData);
+          // Handle both old format (direct array) and new format (object with jobs property)
+          if (Array.isArray(parsed)) {
+            setCareers(parsed);
+            // Convert to new format
+            localStorage.setItem('careers', JSON.stringify({ jobs: parsed }));
+          } else if (parsed.jobs && Array.isArray(parsed.jobs)) {
+            setCareers(parsed.jobs);
+          } else {
+            setCareers(DEFAULT_CAREERS);
+            localStorage.setItem('careers', JSON.stringify({ jobs: DEFAULT_CAREERS }));
+          }
         } else {
           setCareers(DEFAULT_CAREERS);
-          localStorage.setItem('careers', JSON.stringify(DEFAULT_CAREERS));
+          localStorage.setItem('careers', JSON.stringify({ jobs: DEFAULT_CAREERS }));
         }
         
         // Load about info
@@ -73,7 +84,52 @@ function AdminDashboard() {
         // Load services
         const servicesData = localStorage.getItem('services');
         if (servicesData) {
-          setServices(JSON.parse(servicesData));
+          const parsed = JSON.parse(servicesData);
+          // Handle both old format (direct array) and new format (object with services property)
+          if (Array.isArray(parsed)) {
+            setServices(parsed);
+            // Convert to new format
+            localStorage.setItem('services', JSON.stringify({ services: parsed }));
+          } else if (parsed.services && Array.isArray(parsed.services)) {
+            setServices(parsed.services);
+          } else {
+            const defaultServices = [
+              {
+                id: 1,
+                titleEn: 'Academic Support',
+                titleAr: 'الدعم الأكاديمي',
+                descEn: 'Comprehensive support to help students excel in their studies',
+                descAr: 'دعم شامل لمساعدة الطلاب على التفوق في دراستهم',
+                imageUrl: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&q=80'
+              },
+              {
+                id: 2,
+                titleEn: 'Educational Consulting',
+                titleAr: 'الاستشارات التعليمية',
+                descEn: 'Expert guidance for academic planning and career development',
+                descAr: 'إرشادات الخبراء للتخطيط الأكاديمي والتطوير الوظيفي',
+                imageUrl: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&q=80'
+              },
+              {
+                id: 3,
+                titleEn: 'Edu Technology Solutions',
+                titleAr: 'حلول التكنولوجيا التعليمية',
+                descEn: 'Innovative tech tools and resources for academic success',
+                descAr: 'أدوات وموارد تقنية مبتكرة للنجاح الأكاديمي',
+                imageUrl: 'https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=400&q=80'
+              },
+              {
+                id: 4,
+                titleEn: 'Quality Education Programs',
+                titleAr: 'برامج تعليمية عالية الجودة',
+                descEn: 'We offer programs with a high quality of education and a strong learning system',
+                descAr: 'نقدم برامج ذات جودة تعليمية عالية ونظام تعلم قوي',
+                imageUrl: `${process.env.PUBLIC_URL}/quality-education.jpg`
+              }
+            ];
+            setServices(defaultServices);
+            localStorage.setItem('services', JSON.stringify({ services: defaultServices }));
+          }
         } else {
           const defaultServices = [
             {
@@ -110,7 +166,7 @@ function AdminDashboard() {
             }
           ];
           setServices(defaultServices);
-          localStorage.setItem('services', JSON.stringify(defaultServices));
+          localStorage.setItem('services', JSON.stringify({ services: defaultServices }));
         }
         
         // Load hero content
@@ -131,7 +187,25 @@ function AdminDashboard() {
         // Load partners
         const partnersData = localStorage.getItem('partners');
         if (partnersData) {
-          setPartners(JSON.parse(partnersData));
+          const parsed = JSON.parse(partnersData);
+          // Handle both old format (direct array) and new format (object with partners property)
+          if (Array.isArray(parsed)) {
+            setPartners(parsed);
+            // Convert to new format
+            localStorage.setItem('partners', JSON.stringify({ partners: parsed }));
+          } else if (parsed.partners && Array.isArray(parsed.partners)) {
+            setPartners(parsed.partners);
+          } else {
+            const defaultPartners = [
+              { id: 1, nameEn: 'MK Elite', nameAr: 'MK Elite', logoPath: 'partner 1.jpeg', order: 1 },
+              { id: 2, nameEn: 'ALQAWASMI', nameAr: 'ALQAWASMI', logoPath: 'Partener 2.png', order: 2 },
+              { id: 3, nameEn: 'Management & Science University', nameAr: 'Management & Science University', logoPath: 'parnter 3.jpeg', order: 3 },
+              { id: 4, nameEn: 'UCSI University', nameAr: 'UCSI University', logoPath: 'parnter 4.jpeg', order: 4 },
+              { id: 5, nameEn: 'Duy Tân University', nameAr: 'Duy Tân University', logoPath: 'partener 5.jpeg', order: 5 }
+            ];
+            setPartners(defaultPartners);
+            localStorage.setItem('partners', JSON.stringify({ partners: defaultPartners }));
+          }
         } else {
           const defaultPartners = [
             { id: 1, nameEn: 'MK Elite', nameAr: 'MK Elite', logoPath: 'partner 1.jpeg', order: 1 },
@@ -141,7 +215,7 @@ function AdminDashboard() {
             { id: 5, nameEn: 'Duy Tân University', nameAr: 'Duy Tân University', logoPath: 'partener 5.jpeg', order: 5 }
           ];
           setPartners(defaultPartners);
-          localStorage.setItem('partners', JSON.stringify(defaultPartners));
+          localStorage.setItem('partners', JSON.stringify({ partners: defaultPartners }));
         }
         
         setFirebaseStatus('✓ Data loaded from localStorage');
@@ -156,34 +230,40 @@ function AdminDashboard() {
     loadAllContent();
   }, []);
 
-  // Save to localStorage whenever data changes
+  // Save to localStorage whenever data changes (in format expected by website)
   useEffect(() => {
     if (!loading && careers.length > 0) {
-      localStorage.setItem('careers', JSON.stringify(careers));
+      localStorage.setItem('careers', JSON.stringify({ jobs: careers }));
+      // Trigger storage event for real-time sync
+      window.dispatchEvent(new StorageEvent('storage', { key: 'careers' }));
     }
   }, [careers, loading]);
 
   useEffect(() => {
     if (!loading && Object.keys(aboutInfo).length > 0) {
       localStorage.setItem('aboutInfo', JSON.stringify(aboutInfo));
+      window.dispatchEvent(new StorageEvent('storage', { key: 'aboutInfo' }));
     }
   }, [aboutInfo, loading]);
 
   useEffect(() => {
     if (!loading && services.length > 0) {
-      localStorage.setItem('services', JSON.stringify(services));
+      localStorage.setItem('services', JSON.stringify({ services: services }));
+      window.dispatchEvent(new StorageEvent('storage', { key: 'services' }));
     }
   }, [services, loading]);
 
   useEffect(() => {
     if (!loading && Object.keys(heroContent).length > 0) {
       localStorage.setItem('heroContent', JSON.stringify(heroContent));
+      window.dispatchEvent(new StorageEvent('storage', { key: 'heroContent' }));
     }
   }, [heroContent, loading]);
 
   useEffect(() => {
     if (!loading && partners.length > 0) {
-      localStorage.setItem('partners', JSON.stringify(partners));
+      localStorage.setItem('partners', JSON.stringify({ partners: partners }));
+      window.dispatchEvent(new StorageEvent('storage', { key: 'partners' }));
     }
   }, [partners, loading]);
 
