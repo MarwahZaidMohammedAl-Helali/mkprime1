@@ -4,6 +4,7 @@ import './App.css';
 import './animations.css';
 import './admin.css';
 import { getContent } from './contentManager';
+import { initializeDefaultContent } from './firebaseHelpers';
 
 // Import pages
 import Home from './pages/Home';
@@ -24,10 +25,37 @@ function ProtectedRoute({ children }) {
 function AppContent() {
   const [language, setLanguage] = useState('en');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [content, setContent] = useState({ ar: {}, en: {} });
+  const [loading, setLoading] = useState(true);
   const location = useLocation();
 
   // Check if on admin pages
   const isAdminPage = location.pathname.startsWith('/admin');
+
+  // Initialize Firebase and load content
+  useEffect(() => {
+    const initializeApp = async () => {
+      try {
+        await initializeDefaultContent();
+        const [arContent, enContent] = await Promise.all([
+          getContent('ar'),
+          getContent('en')
+        ]);
+        setContent({ ar: arContent, en: enContent });
+      } catch (error) {
+        console.error('Error initializing app:', error);
+        // Fallback to empty content structure
+        setContent({
+          ar: { nav: {}, hero: {}, about: {}, services: {}, careers: {}, partners: {}, contact: {}, footer: {} },
+          en: { nav: {}, hero: {}, about: {}, services: {}, careers: {}, partners: {}, contact: {}, footer: {} }
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeApp();
+  }, []);
 
   // Smooth scroll animation observer
   useEffect(() => {
@@ -271,13 +299,27 @@ function AppContent() {
   ];
 
   // Get dynamic content
-  const content = {
-    ar: getContent('ar'),
-    en: getContent('en')
-  };
-
-  const t = content[language];
+  const t = content[language] || {};
   const isRTL = language === 'ar';
+
+  // Show loading screen while initializing
+  if (loading && !isAdminPage) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        fontSize: '18px',
+        color: '#666'
+      }}>
+        <div>
+          <div style={{ marginBottom: '20px', textAlign: 'center' }}>⏳</div>
+          <div>Loading MKPRIME...</div>
+        </div>
+      </div>
+    );
+  }
 
   // Don't render navbar/footer on admin pages
   if (isAdminPage) {

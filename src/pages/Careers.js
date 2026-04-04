@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { subscribeToContent } from '../firebaseHelpers';
 
 function Careers({ language, content }) {
   const t = content[language];
@@ -27,45 +28,24 @@ function Careers({ language, content }) {
   }, [DEFAULT_CAREERS]);
   
   useEffect(() => {
-    const loadCareers = () => {
-      try {
-        const careersData = localStorage.getItem('careers');
-        
-        if (careersData) {
-          const parsed = JSON.parse(careersData);
-          if (parsed && parsed.jobs && Array.isArray(parsed.jobs) && parsed.jobs.length > 0) {
-            setCareers(parsed.jobs);
-          } else {
-            console.log('No careers in localStorage, using defaults');
-            const defaults = initializeDefaultCareers();
-            setCareers(defaults);
-          }
-        } else {
-          console.log('No careers in localStorage, using defaults');
-          const defaults = initializeDefaultCareers();
-          setCareers(defaults);
-        }
-      } catch (error) {
-        console.error('Error loading careers from localStorage:', error);
-        setCareers(DEFAULT_CAREERS);
+    // Set up Firebase real-time listener
+    const unsubscribe = subscribeToContent('careers', (data) => {
+      if (data && data.jobs && Array.isArray(data.jobs) && data.jobs.length > 0) {
+        setCareers(data.jobs);
+      } else {
+        console.log('No careers in Firebase, using defaults');
+        const defaults = initializeDefaultCareers();
+        setCareers(defaults);
       }
-    };
-    
-    loadCareers();
-    
-    // Listen for storage events from admin panel
-    const handleStorageChange = (e) => {
-      if (e.key === 'careers') {
-        loadCareers();
-      }
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    
+    });
+
+    // Cleanup listener on unmount
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
     };
-  }, [DEFAULT_CAREERS, initializeDefaultCareers]);
+  }, [initializeDefaultCareers]);
 
   return (
     <section className="careers page-section scroll-animate">

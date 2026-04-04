@@ -1,24 +1,45 @@
-// Content Manager - Loads dynamic content from localStorage
-export const loadDynamicContent = () => {
-  const careers = localStorage.getItem('careers');
-  const aboutInfo = localStorage.getItem('aboutInfo');
-  const services = localStorage.getItem('services');
-  const heroContent = localStorage.getItem('heroContent');
+import { getContent } from './firebaseHelpers';
 
-  // Parse and extract data from the new format
-  const parsedCareers = careers ? JSON.parse(careers) : null;
-  const parsedServices = services ? JSON.parse(services) : null;
+// Content Manager - Loads dynamic content from Firebase with localStorage fallback
+export const loadDynamicContent = async () => {
+  try {
+    // Try to load from Firebase first
+    const [careers, aboutInfo, services, heroContent] = await Promise.all([
+      getContent('careers'),
+      getContent('aboutInfo'),
+      getContent('services'),
+      getContent('heroContent')
+    ]);
 
-  return {
-    careers: parsedCareers?.jobs || parsedCareers || [],
-    aboutInfo: aboutInfo ? JSON.parse(aboutInfo) : {},
-    services: parsedServices?.services || parsedServices || [],
-    heroContent: heroContent ? JSON.parse(heroContent) : {}
-  };
+    return {
+      careers: careers?.jobs || [],
+      aboutInfo: aboutInfo || {},
+      services: services?.services || [],
+      heroContent: heroContent || {}
+    };
+  } catch (error) {
+    console.error('Error loading from Firebase, falling back to localStorage:', error);
+    
+    // Fallback to localStorage
+    const careers = localStorage.getItem('careers');
+    const aboutInfo = localStorage.getItem('aboutInfo');
+    const services = localStorage.getItem('services');
+    const heroContent = localStorage.getItem('heroContent');
+
+    const parsedCareers = careers ? JSON.parse(careers) : null;
+    const parsedServices = services ? JSON.parse(services) : null;
+
+    return {
+      careers: parsedCareers?.jobs || parsedCareers || [],
+      aboutInfo: aboutInfo ? JSON.parse(aboutInfo) : {},
+      services: parsedServices?.services || parsedServices || [],
+      heroContent: heroContent ? JSON.parse(heroContent) : {}
+    };
+  }
 };
 
-export const getContent = (language) => {
-  const dynamic = loadDynamicContent();
+export const getContent = async (language) => {
+  const dynamic = await loadDynamicContent();
   
   const content = {
     ar: {
