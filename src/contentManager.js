@@ -5,10 +5,14 @@ export const loadDynamicContent = () => {
   const services = localStorage.getItem('services');
   const heroContent = localStorage.getItem('heroContent');
 
+  // Parse and extract data from the new format
+  const parsedCareers = careers ? JSON.parse(careers) : null;
+  const parsedServices = services ? JSON.parse(services) : null;
+
   return {
-    careers: careers ? JSON.parse(careers) : [],
+    careers: parsedCareers?.jobs || parsedCareers || [],
     aboutInfo: aboutInfo ? JSON.parse(aboutInfo) : {},
-    services: services ? JSON.parse(services) : [],
+    services: parsedServices?.services || parsedServices || [],
     heroContent: heroContent ? JSON.parse(heroContent) : {}
   };
 };
@@ -41,30 +45,30 @@ export const getContent = (language) => {
       services: {
         title: 'خدماتنا',
         service1: {
-          title: dynamic.services[0]?.titleAr || 'الدعم الأكاديمي',
-          desc: dynamic.services[0]?.descAr || 'دعم شامل لمساعدة الطلاب على التفوق في دراستهم'
+          title: (Array.isArray(dynamic.services) && dynamic.services[0]) ? dynamic.services[0].titleAr : 'الدعم الأكاديمي',
+          desc: (Array.isArray(dynamic.services) && dynamic.services[0]) ? dynamic.services[0].descAr : 'دعم شامل لمساعدة الطلاب على التفوق في دراستهم'
         },
         service2: {
-          title: dynamic.services[1]?.titleAr || 'الاستشارات التعليمية',
-          desc: dynamic.services[1]?.descAr || 'إرشادات الخبراء للتخطيط الأكاديمي والتطوير الوظيفي'
+          title: (Array.isArray(dynamic.services) && dynamic.services[1]) ? dynamic.services[1].titleAr : 'الاستشارات التعليمية',
+          desc: (Array.isArray(dynamic.services) && dynamic.services[1]) ? dynamic.services[1].descAr : 'إرشادات الخبراء للتخطيط الأكاديمي والتطوير الوظيفي'
         },
         service3: {
-          title: dynamic.services[2]?.titleAr || 'حلول التكنولوجيا التعليمية',
-          desc: dynamic.services[2]?.descAr || 'أدوات وموارد تقنية مبتكرة للنجاح الأكاديمي'
+          title: (Array.isArray(dynamic.services) && dynamic.services[2]) ? dynamic.services[2].titleAr : 'حلول التكنولوجيا التعليمية',
+          desc: (Array.isArray(dynamic.services) && dynamic.services[2]) ? dynamic.services[2].descAr : 'أدوات وموارد تقنية مبتكرة للنجاح الأكاديمي'
         },
         service4: {
-          title: dynamic.services[3]?.titleAr || 'برامج تعليمية عالية الجودة',
-          desc: dynamic.services[3]?.descAr || 'نقدم برامج ذات جودة تعليمية عالية ونظام تعلم قوي'
+          title: (Array.isArray(dynamic.services) && dynamic.services[3]) ? dynamic.services[3].titleAr : 'برامج تعليمية عالية الجودة',
+          desc: (Array.isArray(dynamic.services) && dynamic.services[3]) ? dynamic.services[3].descAr : 'نقدم برامج ذات جودة تعليمية عالية ونظام تعلم قوي'
         }
       },
       careers: {
         title: 'الوظائف',
         intro: 'انضم إلى فريقنا وساعدنا في تمكين الطلاب في جميع أنحاء شرق آسيا ودول مجلس التعاون الخليجي',
-        jobs: dynamic.careers.map(career => ({
+        jobs: Array.isArray(dynamic.careers) ? dynamic.careers.map(career => ({
           title: career.titleAr,
           type: career.typeAr,
           description: career.descAr
-        })),
+        })) : [],
         apply: 'تقدم الآن'
       },
       partners: {
@@ -114,30 +118,30 @@ export const getContent = (language) => {
       services: {
         title: 'Our Services',
         service1: {
-          title: dynamic.services[0]?.titleEn || 'Academic Support',
-          desc: dynamic.services[0]?.descEn || 'Comprehensive support to help students excel in their studies'
+          title: (Array.isArray(dynamic.services) && dynamic.services[0]) ? dynamic.services[0].titleEn : 'Academic Support',
+          desc: (Array.isArray(dynamic.services) && dynamic.services[0]) ? dynamic.services[0].descEn : 'Comprehensive support to help students excel in their studies'
         },
         service2: {
-          title: dynamic.services[1]?.titleEn || 'Educational Consulting',
-          desc: dynamic.services[1]?.descEn || 'Expert guidance for academic planning and career development'
+          title: (Array.isArray(dynamic.services) && dynamic.services[1]) ? dynamic.services[1].titleEn : 'Educational Consulting',
+          desc: (Array.isArray(dynamic.services) && dynamic.services[1]) ? dynamic.services[1].descEn : 'Expert guidance for academic planning and career development'
         },
         service3: {
-          title: dynamic.services[2]?.titleEn || 'Edu Technology Solutions',
-          desc: dynamic.services[2]?.descEn || 'Innovative tech tools and resources for academic success'
+          title: (Array.isArray(dynamic.services) && dynamic.services[2]) ? dynamic.services[2].titleEn : 'Edu Technology Solutions',
+          desc: (Array.isArray(dynamic.services) && dynamic.services[2]) ? dynamic.services[2].descEn : 'Innovative tech tools and resources for academic success'
         },
         service4: {
-          title: dynamic.services[3]?.titleEn || 'Quality Education Programs',
-          desc: dynamic.services[3]?.descEn || 'We offer programs with a high quality of education and a strong learning system'
+          title: (Array.isArray(dynamic.services) && dynamic.services[3]) ? dynamic.services[3].titleEn : 'Quality Education Programs',
+          desc: (Array.isArray(dynamic.services) && dynamic.services[3]) ? dynamic.services[3].descEn : 'We offer programs with a high quality of education and a strong learning system'
         }
       },
       careers: {
         title: 'Careers',
         intro: 'Join our team and help us empower students across East Asia and the GCC',
-        jobs: dynamic.careers.map(career => ({
+        jobs: Array.isArray(dynamic.careers) ? dynamic.careers.map(career => ({
           title: career.titleEn,
           type: career.type,
           description: career.descEn
-        })),
+        })) : [],
         apply: 'Apply Now'
       },
       partners: {
