@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ImageUploader from '../components/ImageUploader';
+import { 
+  getCareers, addCareer, updateCareer, deleteCareer,
+  getServices, addService, updateService, deleteService,
+  getPartners, addPartner, updatePartner, deletePartner,
+  getAboutInfo, updateAboutInfo,
+  getHeroContent, updateHeroContent
+} from '../services/dataService';
 
 // Default data constants
 const DEFAULT_CAREERS = [
@@ -36,192 +43,32 @@ function AdminDashboard() {
   const [heroContent, setHeroContent] = useState({});
   const [partners, setPartners] = useState([]);
 
-  // Load all content from Firebase on mount
-  // Load all content from localStorage on mount
+  // Load all content from Supabase on mount
   useEffect(() => {
-    const loadAllContent = () => {
+    const loadAllContent = async () => {
       try {
         setLoading(true);
-        setAdminStatus('Loading admin data...');
+        setAdminStatus('Loading admin data from Supabase...');
         
-        // Load careers
-        const careersData = localStorage.getItem('careers');
-        if (careersData) {
-          const parsed = JSON.parse(careersData);
-          // Handle both old format (direct array) and new format (object with jobs property)
-          if (Array.isArray(parsed)) {
-            setCareers(parsed);
-            // Convert to new format
-            localStorage.setItem('careers', JSON.stringify({ jobs: parsed }));
-          } else if (parsed.jobs && Array.isArray(parsed.jobs)) {
-            setCareers(parsed.jobs);
-          } else {
-            setCareers(DEFAULT_CAREERS);
-            localStorage.setItem('careers', JSON.stringify({ jobs: DEFAULT_CAREERS }));
-          }
-        } else {
-          setCareers(DEFAULT_CAREERS);
-          localStorage.setItem('careers', JSON.stringify({ jobs: DEFAULT_CAREERS }));
-        }
+        // Load all data from Supabase
+        const [careersData, servicesData, partnersData, aboutData, heroData] = await Promise.all([
+          getCareers(),
+          getServices(),
+          getPartners(),
+          getAboutInfo(),
+          getHeroContent()
+        ]);
         
-        // Load about info
-        const aboutData = localStorage.getItem('aboutInfo');
-        if (aboutData) {
-          setAboutInfo(JSON.parse(aboutData));
-        } else {
-          const defaultAbout = {
-            descEn: 'MKPRIME is dedicated to providing specialized services designed to support students across East Asia (EA) and the Gulf Cooperation Council (GCC) regions. Our offerings are designed to empower students with solutions, including academic services and support, educational technology solutions, and resources that help students efficiently navigate their academic journeys.',
-            descAr: 'نقدّم خدمات مخصصة لدعم الطلاب في الجامعات داخل شرق آسيا والخليج العربي، تشمل: الدعم الأكاديمي - تنظيم الوثائق وإدارتها - حلول تكنولوجيا تعليمية تساعد الطلاب على التكيف والنجاح في بيئة دراستهم. نسعى لتقديم تجربة تعليمية أكثر سلاسة وتنظيماً للطلاب الدوليين.',
-            founded: '2023',
-            team: '10-50',
-            type: 'Digital Company',
-            typeAr: 'شركة رقمية'
-          };
-          setAboutInfo(defaultAbout);
-          localStorage.setItem('aboutInfo', JSON.stringify(defaultAbout));
-        }
+        setCareers(careersData);
+        setServices(servicesData);
+        setPartners(partnersData);
+        setAboutInfo(aboutData);
+        setHeroContent(heroData);
         
-        // Load services
-        const servicesData = localStorage.getItem('services');
-        if (servicesData) {
-          const parsed = JSON.parse(servicesData);
-          // Handle both old format (direct array) and new format (object with services property)
-          if (Array.isArray(parsed)) {
-            setServices(parsed);
-            // Convert to new format
-            localStorage.setItem('services', JSON.stringify({ services: parsed }));
-          } else if (parsed.services && Array.isArray(parsed.services)) {
-            setServices(parsed.services);
-          } else {
-            const defaultServices = [
-              {
-                id: 1,
-                titleEn: 'Academic Support',
-                titleAr: 'الدعم الأكاديمي',
-                descEn: 'Comprehensive support to help students excel in their studies',
-                descAr: 'دعم شامل لمساعدة الطلاب على التفوق في دراستهم',
-                imageUrl: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&q=80'
-              },
-              {
-                id: 2,
-                titleEn: 'Educational Consulting',
-                titleAr: 'الاستشارات التعليمية',
-                descEn: 'Expert guidance for academic planning and career development',
-                descAr: 'إرشادات الخبراء للتخطيط الأكاديمي والتطوير الوظيفي',
-                imageUrl: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&q=80'
-              },
-              {
-                id: 3,
-                titleEn: 'Edu Technology Solutions',
-                titleAr: 'حلول التكنولوجيا التعليمية',
-                descEn: 'Innovative tech tools and resources for academic success',
-                descAr: 'أدوات وموارد تقنية مبتكرة للنجاح الأكاديمي',
-                imageUrl: 'https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=400&q=80'
-              },
-              {
-                id: 4,
-                titleEn: 'Quality Education Programs',
-                titleAr: 'برامج تعليمية عالية الجودة',
-                descEn: 'We offer programs with a high quality of education and a strong learning system',
-                descAr: 'نقدم برامج ذات جودة تعليمية عالية ونظام تعلم قوي',
-                imageUrl: `${process.env.PUBLIC_URL}/quality-education.jpg`
-              }
-            ];
-            setServices(defaultServices);
-            localStorage.setItem('services', JSON.stringify({ services: defaultServices }));
-          }
-        } else {
-          const defaultServices = [
-            {
-              id: 1,
-              titleEn: 'Academic Support',
-              titleAr: 'الدعم الأكاديمي',
-              descEn: 'Comprehensive support to help students excel in their studies',
-              descAr: 'دعم شامل لمساعدة الطلاب على التفوق في دراستهم',
-              imageUrl: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&q=80'
-            },
-            {
-              id: 2,
-              titleEn: 'Educational Consulting',
-              titleAr: 'الاستشارات التعليمية',
-              descEn: 'Expert guidance for academic planning and career development',
-              descAr: 'إرشادات الخبراء للتخطيط الأكاديمي والتطوير الوظيفي',
-              imageUrl: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&q=80'
-            },
-            {
-              id: 3,
-              titleEn: 'Edu Technology Solutions',
-              titleAr: 'حلول التكنولوجيا التعليمية',
-              descEn: 'Innovative tech tools and resources for academic success',
-              descAr: 'أدوات وموارد تقنية مبتكرة للنجاح الأكاديمي',
-              imageUrl: 'https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=400&q=80'
-            },
-            {
-              id: 4,
-              titleEn: 'Quality Education Programs',
-              titleAr: 'برامج تعليمية عالية الجودة',
-              descEn: 'We offer programs with a high quality of education and a strong learning system',
-              descAr: 'نقدم برامج ذات جودة تعليمية عالية ونظام تعلم قوي',
-              imageUrl: `${process.env.PUBLIC_URL}/quality-education.jpg`
-            }
-          ];
-          setServices(defaultServices);
-          localStorage.setItem('services', JSON.stringify({ services: defaultServices }));
-        }
-        
-        // Load hero content
-        const heroData = localStorage.getItem('heroContent');
-        if (heroData) {
-          setHeroContent(JSON.parse(heroData));
-        } else {
-          const defaultHero = {
-            titleEn: 'Empowering Students Across EA & GCC',
-            titleAr: 'نمكّن الطلاب في شرق آسيا ودول مجلس التعاون الخليجي',
-            subtitleEn: 'Specialized services designed to support your academic journey',
-            subtitleAr: 'نقدم خدمات متخصصة لدعم الطلاب في رحلتهم الأكاديمية'
-          };
-          setHeroContent(defaultHero);
-          localStorage.setItem('heroContent', JSON.stringify(defaultHero));
-        }
-        
-        // Load partners
-        const partnersData = localStorage.getItem('partners');
-        if (partnersData) {
-          const parsed = JSON.parse(partnersData);
-          // Handle both old format (direct array) and new format (object with partners property)
-          if (Array.isArray(parsed)) {
-            setPartners(parsed);
-            // Convert to new format
-            localStorage.setItem('partners', JSON.stringify({ partners: parsed }));
-          } else if (parsed.partners && Array.isArray(parsed.partners)) {
-            setPartners(parsed.partners);
-          } else {
-            const defaultPartners = [
-              { id: 1, nameEn: 'MK Elite', nameAr: 'MK Elite', logoPath: 'partner 1.jpeg', order: 1 },
-              { id: 2, nameEn: 'ALQAWASMI', nameAr: 'ALQAWASMI', logoPath: 'Partener 2.png', order: 2 },
-              { id: 3, nameEn: 'Management & Science University', nameAr: 'Management & Science University', logoPath: 'parnter 3.jpeg', order: 3 },
-              { id: 4, nameEn: 'UCSI University', nameAr: 'UCSI University', logoPath: 'parnter 4.jpeg', order: 4 },
-              { id: 5, nameEn: 'Duy Tân University', nameAr: 'Duy Tân University', logoPath: 'partener 5.jpeg', order: 5 }
-            ];
-            setPartners(defaultPartners);
-            localStorage.setItem('partners', JSON.stringify({ partners: defaultPartners }));
-          }
-        } else {
-          const defaultPartners = [
-            { id: 1, nameEn: 'MK Elite', nameAr: 'MK Elite', logoPath: 'partner 1.jpeg', order: 1 },
-            { id: 2, nameEn: 'ALQAWASMI', nameAr: 'ALQAWASMI', logoPath: 'Partener 2.png', order: 2 },
-            { id: 3, nameEn: 'Management & Science University', nameAr: 'Management & Science University', logoPath: 'parnter 3.jpeg', order: 3 },
-            { id: 4, nameEn: 'UCSI University', nameAr: 'UCSI University', logoPath: 'parnter 4.jpeg', order: 4 },
-            { id: 5, nameEn: 'Duy Tân University', nameAr: 'Duy Tân University', logoPath: 'partener 5.jpeg', order: 5 }
-          ];
-          setPartners(defaultPartners);
-          localStorage.setItem('partners', JSON.stringify({ partners: defaultPartners }));
-        }
-        
-        setAdminStatus('✓ Admin panel ready');
+        setAdminStatus('✓ Data loaded from Supabase');
         setLoading(false);
       } catch (error) {
-        console.error('Error loading content from localStorage:', error);
+        console.error('Error loading content from Supabase:', error);
         setAdminStatus('✗ Error loading admin data');
         setLoading(false);
       }
@@ -230,124 +77,193 @@ function AdminDashboard() {
     loadAllContent();
   }, []);
 
-  // Save to localStorage whenever data changes (in format expected by website)
-  useEffect(() => {
-    if (!loading && careers.length > 0) {
-      localStorage.setItem('careers', JSON.stringify({ jobs: careers }));
-      // Trigger storage event for real-time sync
-      window.dispatchEvent(new StorageEvent('storage', { key: 'careers' }));
-    }
-  }, [careers, loading]);
-
-  useEffect(() => {
-    if (!loading && Object.keys(aboutInfo).length > 0) {
-      localStorage.setItem('aboutInfo', JSON.stringify(aboutInfo));
-      window.dispatchEvent(new StorageEvent('storage', { key: 'aboutInfo' }));
-    }
-  }, [aboutInfo, loading]);
-
-  useEffect(() => {
-    if (!loading && services.length > 0) {
-      localStorage.setItem('services', JSON.stringify({ services: services }));
-      window.dispatchEvent(new StorageEvent('storage', { key: 'services' }));
-    }
-  }, [services, loading]);
-
-  useEffect(() => {
-    if (!loading && Object.keys(heroContent).length > 0) {
-      localStorage.setItem('heroContent', JSON.stringify(heroContent));
-      window.dispatchEvent(new StorageEvent('storage', { key: 'heroContent' }));
-    }
-  }, [heroContent, loading]);
-
-  useEffect(() => {
-    if (!loading && partners.length > 0) {
-      localStorage.setItem('partners', JSON.stringify({ partners: partners }));
-      window.dispatchEvent(new StorageEvent('storage', { key: 'partners' }));
-    }
-  }, [partners, loading]);
+  // Remove localStorage sync effects - Supabase handles persistence
+  // Data changes will be reflected immediately in the database
 
   const handleLogout = () => {
     localStorage.removeItem('adminAuth');
     navigate('/admin/login');
   };
 
+  // About Info Management
+  const updateAboutHandler = async (field, value) => {
+    try {
+      const updatedAbout = { ...aboutInfo, [field]: value };
+      await updateAboutInfo(updatedAbout);
+      setAboutInfo(updatedAbout);
+    } catch (error) {
+      console.error('Error updating about info:', error);
+      alert('Error updating about info. Please try again.');
+    }
+  };
+
+  // Hero Content Management
+  const updateHeroHandler = async (field, value) => {
+    try {
+      const updatedHero = { ...heroContent, [field]: value };
+      await updateHeroContent(updatedHero);
+      setHeroContent(updatedHero);
+    } catch (error) {
+      console.error('Error updating hero content:', error);
+      alert('Error updating hero content. Please try again.');
+    }
+  };
+
   // Career Management
-  const addCareer = () => {
-    const newCareer = {
-      id: Date.now(),
-      titleEn: 'New Position',
-      titleAr: 'وظيفة جديدة',
-      type: 'Full-time',
-      typeAr: 'دوام كامل',
-      descEn: 'Job description',
-      descAr: 'وصف الوظيفة'
-    };
-    setCareers([...careers, newCareer]);
+  const addCareerHandler = async () => {
+    try {
+      const newCareer = {
+        titleEn: 'New Position',
+        titleAr: 'وظيفة جديدة',
+        type: 'Full-time',
+        typeAr: 'دوام كامل',
+        descEn: 'Job description',
+        descAr: 'وصف الوظيفة'
+      };
+      const addedCareer = await addCareer(newCareer);
+      setCareers([...careers, {
+        id: addedCareer.id,
+        titleEn: addedCareer.title_en,
+        titleAr: addedCareer.title_ar,
+        type: addedCareer.type_en,
+        typeAr: addedCareer.type_ar,
+        descEn: addedCareer.description_en,
+        descAr: addedCareer.description_ar
+      }]);
+    } catch (error) {
+      console.error('Error adding career:', error);
+      alert('Error adding career. Please try again.');
+    }
   };
 
-  const updateCareer = (id, field, value) => {
-    setCareers(careers.map(career => 
-      career.id === id ? { ...career, [field]: value } : career
-    ));
+  const updateCareerHandler = async (id, field, value) => {
+    try {
+      console.log('Updating career:', { id, field, value });
+      const updates = { [field]: value };
+      const result = await updateCareer(id, updates);
+      console.log('Update result:', result);
+      setCareers(careers.map(career => 
+        career.id === id ? { ...career, [field]: value } : career
+      ));
+      console.log('Career updated successfully');
+    } catch (error) {
+      console.error('Error updating career:', error);
+      alert(`Error updating career: ${error.message}`);
+    }
   };
 
-  const deleteCareer = (id) => {
+  const deleteCareerHandler = async (id) => {
     if (window.confirm('Are you sure you want to delete this career?')) {
-      setCareers(careers.filter(career => career.id !== id));
+      try {
+        await deleteCareer(id);
+        setCareers(careers.filter(career => career.id !== id));
+      } catch (error) {
+        console.error('Error deleting career:', error);
+        alert('Error deleting career. Please try again.');
+      }
     }
   };
 
   // Service Management
-  const addService = () => {
-    const newService = {
-      id: Date.now(),
-      titleEn: 'New Service',
-      titleAr: 'خدمة جديدة',
-      descEn: 'Service description',
-      descAr: 'وصف الخدمة',
-      imageUrl: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&q=80'
-    };
-    setServices([...services, newService]);
+  const addServiceHandler = async () => {
+    try {
+      const newService = {
+        titleEn: 'New Service',
+        titleAr: 'خدمة جديدة',
+        descEn: 'Service description',
+        descAr: 'وصف الخدمة',
+        imageUrl: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&q=80',
+        displayOrder: services.length + 1
+      };
+      const addedService = await addService(newService);
+      setServices([...services, {
+        id: addedService.id,
+        titleEn: addedService.title_en,
+        titleAr: addedService.title_ar,
+        descEn: addedService.description_en,
+        descAr: addedService.description_ar,
+        imageUrl: addedService.image_url
+      }]);
+    } catch (error) {
+      console.error('Error adding service:', error);
+      alert('Error adding service. Please try again.');
+    }
   };
 
-  const updateService = (id, field, value) => {
-    setServices(services.map(service => 
-      service.id === id ? { ...service, [field]: value } : service
-    ));
+  const updateServiceHandler = async (id, field, value) => {
+    try {
+      const updates = { [field]: value };
+      await updateService(id, updates);
+      setServices(services.map(service => 
+        service.id === id ? { ...service, [field]: value } : service
+      ));
+    } catch (error) {
+      console.error('Error updating service:', error);
+      alert('Error updating service. Please try again.');
+    }
   };
 
-  const deleteService = (id) => {
+  const deleteServiceHandler = async (id) => {
     if (window.confirm('Are you sure you want to delete this service?')) {
-      setServices(services.filter(service => service.id !== id));
+      try {
+        await deleteService(id);
+        setServices(services.filter(service => service.id !== id));
+      } catch (error) {
+        console.error('Error deleting service:', error);
+        alert('Error deleting service. Please try again.');
+      }
     }
   };
 
   // Partner Management
-  const addPartner = () => {
-    const newPartner = {
-      id: Date.now(),
-      nameEn: 'New Partner',
-      nameAr: 'شريك جديد',
-      logoPath: 'logo.png',
-      order: partners.length + 1
-    };
-    setPartners([...partners, newPartner]);
-  };
-
-  const updatePartner = (id, field, value) => {
-    setPartners(partners.map(partner => 
-      partner.id === id ? { ...partner, [field]: value } : partner
-    ));
-  };
-
-  const deletePartner = (id) => {
-    if (window.confirm('Are you sure you want to delete this partner?')) {
-      setPartners(partners.filter(partner => partner.id !== id));
+  const addPartnerHandler = async () => {
+    try {
+      const newPartner = {
+        nameEn: 'New Partner',
+        nameAr: 'New Partner',
+        logoPath: 'logo.png',
+        order: partners.length + 1
+      };
+      const addedPartner = await addPartner(newPartner);
+      setPartners([...partners, {
+        id: addedPartner.id,
+        nameEn: addedPartner.name_en,
+        nameAr: addedPartner.name_ar,
+        logoPath: addedPartner.logo_path,
+        order: addedPartner.display_order
+      }]);
+    } catch (error) {
+      console.error('Error adding partner:', error);
+      alert('Error adding partner. Please try again.');
     }
   };
 
-  const movePartnerUp = (id) => {
+  const updatePartnerHandler = async (id, field, value) => {
+    try {
+      const updates = { [field]: value };
+      await updatePartner(id, updates);
+      setPartners(partners.map(partner => 
+        partner.id === id ? { ...partner, [field]: value } : partner
+      ));
+    } catch (error) {
+      console.error('Error updating partner:', error);
+      alert('Error updating partner. Please try again.');
+    }
+  };
+
+  const deletePartnerHandler = async (id) => {
+    if (window.confirm('Are you sure you want to delete this partner?')) {
+      try {
+        await deletePartner(id);
+        setPartners(partners.filter(partner => partner.id !== id));
+      } catch (error) {
+        console.error('Error deleting partner:', error);
+        alert('Error deleting partner. Please try again.');
+      }
+    }
+  };
+
+  const movePartnerUp = async (id) => {
     const index = partners.findIndex(p => p.id === id);
     if (index > 0) {
       const newPartners = [...partners];
@@ -355,10 +271,17 @@ function AdminDashboard() {
       // Update order values
       newPartners.forEach((p, i) => p.order = i + 1);
       setPartners(newPartners);
+      
+      // Update orders in database
+      try {
+        await Promise.all(newPartners.map(p => updatePartner(p.id, { order: p.order })));
+      } catch (error) {
+        console.error('Error updating partner order:', error);
+      }
     }
   };
 
-  const movePartnerDown = (id) => {
+  const movePartnerDown = async (id) => {
     const index = partners.findIndex(p => p.id === id);
     if (index < partners.length - 1) {
       const newPartners = [...partners];
@@ -366,6 +289,13 @@ function AdminDashboard() {
       // Update order values
       newPartners.forEach((p, i) => p.order = i + 1);
       setPartners(newPartners);
+      
+      // Update orders in database
+      try {
+        await Promise.all(newPartners.map(p => updatePartner(p.id, { order: p.order })));
+      } catch (error) {
+        console.error('Error updating partner order:', error);
+      }
     }
   };
 
@@ -474,7 +404,7 @@ function AdminDashboard() {
           {/* Careers Tab */}
           {activeTab === 'careers' && (
             <div className="careers-management">
-              <button className="add-button" onClick={addCareer}>
+              <button className="add-button" onClick={addCareerHandler}>
                 + Add New Career
               </button>
               
@@ -485,7 +415,7 @@ function AdminDashboard() {
                       <h3>Career #{career.id}</h3>
                       <button 
                         className="delete-button" 
-                        onClick={() => deleteCareer(career.id)}
+                        onClick={() => deleteCareerHandler(career.id)}
                       >
                         🗑️ Delete
                       </button>
@@ -497,7 +427,7 @@ function AdminDashboard() {
                         <input
                           type="text"
                           value={career.titleEn}
-                          onChange={(e) => updateCareer(career.id, 'titleEn', e.target.value)}
+                          onChange={(e) => updateCareerHandler(career.id, 'titleEn', e.target.value)}
                         />
                       </div>
                       
@@ -506,7 +436,7 @@ function AdminDashboard() {
                         <input
                           type="text"
                           value={career.titleAr}
-                          onChange={(e) => updateCareer(career.id, 'titleAr', e.target.value)}
+                          onChange={(e) => updateCareerHandler(career.id, 'titleAr', e.target.value)}
                           dir="rtl"
                         />
                       </div>
@@ -515,7 +445,7 @@ function AdminDashboard() {
                         <label>Type (English)</label>
                         <select
                           value={career.type}
-                          onChange={(e) => updateCareer(career.id, 'type', e.target.value)}
+                          onChange={(e) => updateCareerHandler(career.id, 'type', e.target.value)}
                         >
                           <option value="Full-time">Full-time</option>
                           <option value="Part-time">Part-time</option>
@@ -528,7 +458,7 @@ function AdminDashboard() {
                         <label>Type (Arabic)</label>
                         <select
                           value={career.typeAr}
-                          onChange={(e) => updateCareer(career.id, 'typeAr', e.target.value)}
+                          onChange={(e) => updateCareerHandler(career.id, 'typeAr', e.target.value)}
                         >
                           <option value="دوام كامل">دوام كامل</option>
                           <option value="دوام جزئي">دوام جزئي</option>
@@ -541,7 +471,7 @@ function AdminDashboard() {
                         <label>Description (English)</label>
                         <textarea
                           value={career.descEn}
-                          onChange={(e) => updateCareer(career.id, 'descEn', e.target.value)}
+                          onChange={(e) => updateCareerHandler(career.id, 'descEn', e.target.value)}
                           rows="3"
                         />
                       </div>
@@ -550,7 +480,7 @@ function AdminDashboard() {
                         <label>Description (Arabic)</label>
                         <textarea
                           value={career.descAr}
-                          onChange={(e) => updateCareer(career.id, 'descAr', e.target.value)}
+                          onChange={(e) => updateCareerHandler(career.id, 'descAr', e.target.value)}
                           rows="3"
                           dir="rtl"
                         />
@@ -570,7 +500,7 @@ function AdminDashboard() {
                   <label>Description (English)</label>
                   <textarea
                     value={aboutInfo.descEn}
-                    onChange={(e) => setAboutInfo({...aboutInfo, descEn: e.target.value})}
+                    onChange={(e) => updateAboutHandler('descEn', e.target.value)}
                     rows="5"
                   />
                 </div>
@@ -579,7 +509,7 @@ function AdminDashboard() {
                   <label>Description (Arabic)</label>
                   <textarea
                     value={aboutInfo.descAr}
-                    onChange={(e) => setAboutInfo({...aboutInfo, descAr: e.target.value})}
+                    onChange={(e) => updateAboutHandler('descAr', e.target.value)}
                     rows="5"
                     dir="rtl"
                   />
@@ -590,7 +520,7 @@ function AdminDashboard() {
                   <input
                     type="text"
                     value={aboutInfo.founded}
-                    onChange={(e) => setAboutInfo({...aboutInfo, founded: e.target.value})}
+                    onChange={(e) => updateAboutHandler('founded', e.target.value)}
                   />
                 </div>
                 
@@ -599,7 +529,7 @@ function AdminDashboard() {
                   <input
                     type="text"
                     value={aboutInfo.team}
-                    onChange={(e) => setAboutInfo({...aboutInfo, team: e.target.value})}
+                    onChange={(e) => updateAboutHandler('team', e.target.value)}
                   />
                 </div>
                 
@@ -608,7 +538,7 @@ function AdminDashboard() {
                   <input
                     type="text"
                     value={aboutInfo.type}
-                    onChange={(e) => setAboutInfo({...aboutInfo, type: e.target.value})}
+                    onChange={(e) => updateAboutHandler('type', e.target.value)}
                   />
                 </div>
                 
@@ -617,7 +547,7 @@ function AdminDashboard() {
                   <input
                     type="text"
                     value={aboutInfo.typeAr}
-                    onChange={(e) => setAboutInfo({...aboutInfo, typeAr: e.target.value})}
+                    onChange={(e) => updateAboutHandler('typeAr', e.target.value)}
                     dir="rtl"
                   />
                 </div>
@@ -628,7 +558,7 @@ function AdminDashboard() {
           {/* Services Tab */}
           {activeTab === 'services' && (
             <div className="services-management">
-              <button className="add-button" onClick={addService}>
+              <button className="add-button" onClick={addServiceHandler}>
                 + Add New Service
               </button>
               
@@ -639,7 +569,7 @@ function AdminDashboard() {
                       <h3>Service #{service.id}</h3>
                       <button 
                         className="delete-button" 
-                        onClick={() => deleteService(service.id)}
+                        onClick={() => deleteServiceHandler(service.id)}
                       >
                         🗑️ Delete
                       </button>
@@ -651,7 +581,7 @@ function AdminDashboard() {
                         <input
                           type="text"
                           value={service.titleEn}
-                          onChange={(e) => updateService(service.id, 'titleEn', e.target.value)}
+                          onChange={(e) => updateServiceHandler(service.id, 'titleEn', e.target.value)}
                         />
                       </div>
                       
@@ -660,7 +590,7 @@ function AdminDashboard() {
                         <input
                           type="text"
                           value={service.titleAr}
-                          onChange={(e) => updateService(service.id, 'titleAr', e.target.value)}
+                          onChange={(e) => updateServiceHandler(service.id, 'titleAr', e.target.value)}
                           dir="rtl"
                         />
                       </div>
@@ -669,7 +599,7 @@ function AdminDashboard() {
                         <label>Description (English)</label>
                         <textarea
                           value={service.descEn}
-                          onChange={(e) => updateService(service.id, 'descEn', e.target.value)}
+                          onChange={(e) => updateServiceHandler(service.id, 'descEn', e.target.value)}
                           rows="3"
                         />
                       </div>
@@ -678,7 +608,7 @@ function AdminDashboard() {
                         <label>Description (Arabic)</label>
                         <textarea
                           value={service.descAr}
-                          onChange={(e) => updateService(service.id, 'descAr', e.target.value)}
+                          onChange={(e) => updateServiceHandler(service.id, 'descAr', e.target.value)}
                           rows="3"
                           dir="rtl"
                         />
@@ -693,7 +623,7 @@ function AdminDashboard() {
           {/* Partners Tab */}
           {activeTab === 'partners' && (
             <div className="partners-management">
-              <button className="add-button" onClick={addPartner}>
+              <button className="add-button" onClick={addPartnerHandler}>
                 + Add New Partner
               </button>
               
@@ -721,7 +651,7 @@ function AdminDashboard() {
                         </button>
                         <button 
                           className="delete-button" 
-                          onClick={() => deletePartner(partner.id)}
+                          onClick={() => deletePartnerHandler(partner.id)}
                         >
                           🗑️ Delete
                         </button>
@@ -734,7 +664,7 @@ function AdminDashboard() {
                         <input
                           type="text"
                           value={partner.nameEn}
-                          onChange={(e) => updatePartner(partner.id, 'nameEn', e.target.value)}
+                          onChange={(e) => updatePartnerHandler(partner.id, 'nameEn', e.target.value)}
                         />
                       </div>
                       
@@ -743,7 +673,7 @@ function AdminDashboard() {
                         <input
                           type="text"
                           value={partner.nameAr}
-                          onChange={(e) => updatePartner(partner.id, 'nameAr', e.target.value)}
+                          onChange={(e) => updatePartnerHandler(partner.id, 'nameAr', e.target.value)}
                           dir="rtl"
                         />
                       </div>
@@ -752,8 +682,8 @@ function AdminDashboard() {
                         <label>Partner Logo</label>
                         <ImageUploader
                           currentImage={partner.logoPath}
-                          onImageChange={(filename) => updatePartner(partner.id, 'logoPath', filename)}
-                          onImageDelete={() => updatePartner(partner.id, 'logoPath', '')}
+                          onImageChange={(filename) => updatePartnerHandler(partner.id, 'logoPath', filename)}
+                          onImageDelete={() => updatePartnerHandler(partner.id, 'logoPath', '')}
                         />
                       </div>
                     </div>
@@ -772,7 +702,7 @@ function AdminDashboard() {
                   <input
                     type="text"
                     value={heroContent.titleEn}
-                    onChange={(e) => setHeroContent({...heroContent, titleEn: e.target.value})}
+                    onChange={(e) => updateHeroHandler('titleEn', e.target.value)}
                   />
                 </div>
                 
@@ -781,7 +711,7 @@ function AdminDashboard() {
                   <input
                     type="text"
                     value={heroContent.titleAr}
-                    onChange={(e) => setHeroContent({...heroContent, titleAr: e.target.value})}
+                    onChange={(e) => updateHeroHandler('titleAr', e.target.value)}
                     dir="rtl"
                   />
                 </div>
@@ -790,7 +720,7 @@ function AdminDashboard() {
                   <label>Subtitle (English)</label>
                   <textarea
                     value={heroContent.subtitleEn}
-                    onChange={(e) => setHeroContent({...heroContent, subtitleEn: e.target.value})}
+                    onChange={(e) => updateHeroHandler('subtitleEn', e.target.value)}
                     rows="2"
                   />
                 </div>
@@ -799,7 +729,7 @@ function AdminDashboard() {
                   <label>Subtitle (Arabic)</label>
                   <textarea
                     value={heroContent.subtitleAr}
-                    onChange={(e) => setHeroContent({...heroContent, subtitleAr: e.target.value})}
+                    onChange={(e) => updateHeroHandler('subtitleAr', e.target.value)}
                     rows="2"
                     dir="rtl"
                   />

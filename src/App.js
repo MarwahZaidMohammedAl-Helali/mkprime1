@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } f
 import './App.css';
 import './animations.css';
 import './admin.css';
-import { getContent } from './contentManager';
+import { getContent, loadDynamicContent } from './contentManager';
 
 // Import pages
 import Home from './pages/Home';
@@ -24,10 +24,50 @@ function ProtectedRoute({ children }) {
 function AppContent() {
   const [language, setLanguage] = useState('en');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [dynamicContent, setDynamicContent] = useState({});
+  const [contentLoading, setContentLoading] = useState(true);
   const location = useLocation();
 
   // Check if on admin pages
   const isAdminPage = location.pathname.startsWith('/admin');
+
+  // Load dynamic content from Supabase
+  useEffect(() => {
+    const loadContent = async () => {
+      try {
+        setContentLoading(true);
+        console.log('🔄 Starting to load dynamic content from Supabase...');
+        
+        // Add timeout to prevent infinite loading
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Loading timeout')), 5000)
+        );
+        
+        const content = await Promise.race([
+          loadDynamicContent(),
+          timeoutPromise
+        ]);
+        
+        console.log('✅ Dynamic content loaded successfully:', content);
+        setDynamicContent(content);
+      } catch (error) {
+        console.error('❌ Error loading content:', error);
+        // Set empty content as fallback
+        setDynamicContent({
+          careers: [],
+          services: [],
+          partners: [],
+          aboutInfo: {},
+          heroContent: {}
+        });
+      } finally {
+        setContentLoading(false);
+        console.log('🏁 Content loading completed, contentLoading set to false');
+      }
+    };
+
+    loadContent();
+  }, []);
 
   // Smooth scroll animation observer
   useEffect(() => {
@@ -272,8 +312,8 @@ function AppContent() {
 
   // Get dynamic content
   const content = {
-    ar: getContent('ar'),
-    en: getContent('en')
+    ar: getContent('ar')(dynamicContent),
+    en: getContent('en')(dynamicContent)
   };
 
   const t = content[language];
@@ -387,7 +427,7 @@ function AppContent() {
         </div>
       </div>
 
-      {/* Routes */}
+      {/* Routes - Always render, don't wait for content loading */}
       <Routes>
         <Route path="/" element={<Home language={language} content={content} />} />
         <Route path="/services" element={<Services language={language} content={content} />} />

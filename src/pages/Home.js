@@ -1,5 +1,6 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { getPartners } from '../services/dataService';
 
 function Home({ language, content }) {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -12,81 +13,20 @@ function Home({ language, content }) {
     'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1920&q=80'
   ];
 
-  // Default 5 partners
-  const DEFAULT_PARTNERS = useMemo(() => [
-   { 
-      id: 1,
-      nameEn: 'MK Elite',
-      nameAr: 'MK Elite',
-      logoPath: 'partner 1.jpeg',
-      order: 1
-    },
-    { 
-      id: 2,
-      nameEn: 'ALQAWASMI',
-      nameAr: 'ALQAWASMI',
-      logoPath: 'Partener 2.png',
-      order: 2
-    },
-    { 
-      id: 3,
-      nameEn: 'Management & Science University',
-      nameAr: 'Management & Science University',
-      logoPath: 'parnter 3.jpeg',
-      order: 3
-    },
-    { 
-      id: 4,
-      nameEn: 'UCSI University',
-      nameAr: 'UCSI University',
-      logoPath: 'parnter 4.jpeg',
-      order: 4
-    },
-    { 
-      id: 5,
-      nameEn: 'Duy Tân University',
-      nameAr: 'Duy Tân University',
-      logoPath: 'partener 5.jpeg',
-      order: 5
-    },
-  ], []);
-
-  // Load partners from localStorage
+  // Load partners from Supabase
   useEffect(() => {
-    const loadPartners = () => {
+    const loadPartners = async () => {
       try {
-        const partnersData = localStorage.getItem('partners');
-        if (partnersData) {
-          const parsed = JSON.parse(partnersData);
-          if (parsed && parsed.partners && Array.isArray(parsed.partners) && parsed.partners.length > 0) {
-            setPartners(parsed.partners.sort((a, b) => a.order - b.order).slice(0, 5));
-          } else {
-            setPartners(DEFAULT_PARTNERS);
-          }
-        } else {
-          setPartners(DEFAULT_PARTNERS);
-        }
+        const partnersData = await getPartners();
+        setPartners(partnersData.slice(0, 5)); // Show only first 5
       } catch (error) {
         console.error('Error loading partners:', error);
-        setPartners(DEFAULT_PARTNERS);
+        setPartners([]);
       }
     };
     
     loadPartners();
-    
-    // Listen for storage events from admin panel
-    const handleStorageChange = (e) => {
-      if (e.key === 'partners') {
-        loadPartners();
-      }
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, [DEFAULT_PARTNERS]);
+  }, []);
 
   // Auto-slide every 5 seconds
   useEffect(() => {
