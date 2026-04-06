@@ -443,8 +443,8 @@ function AppContent() {
       {/* Routes - Always render, don't wait for content loading */}
       <Routes>
         <Route path="/" element={<Home language={language} content={content} />} />
-        <Route path="/services" element={<Services language={language} content={content} />} />
-        <Route path="/careers" element={<Careers language={language} content={content} />} />
+        <Route path="/services" element={<Services language={language} content={{...content, services: dynamicContent.services}} />} />
+        <Route path="/careers" element={<Careers language={language} content={{...content, careers: dynamicContent.careers}} />} />
         <Route path="/apply" element={<JobApplication language={language} content={content} countries={countries} />} />
         <Route path="/partners" element={<Partners language={language} content={{...content, partners: dynamicContent.partners}} />} />
         <Route path="/contact" element={<Contact language={language} content={content} countries={countries} />} />
