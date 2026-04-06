@@ -9,19 +9,6 @@ import {
   getHeroContent, updateHeroContent
 } from '../services/dataService';
 
-// Default data constants
-const DEFAULT_CAREERS = [
-  {
-    id: 1,
-    titleEn: 'Student Coordinator (Remote)',
-    titleAr: 'منسق الطلاب (عن بُعد)',
-    type: 'Flexible Hours',
-    typeAr: 'ساعات مرنة',
-    descEn: 'Support students academically and socially while coordinating activities, managing data, and assisting with student engagement.',
-    descAr: 'دعم الطلاب أكاديمياً واجتماعياً مع تنسيق الأنشطة وإدارة البيانات والمساعدة في مشاركة الطلاب.'
-  }
-];
-
 function AdminDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('careers');
