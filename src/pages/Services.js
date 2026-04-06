@@ -1,25 +1,8 @@
-import { useState, useEffect } from 'react';
-import { getServices } from '../services/dataService';
-
 function Services({ language, content }) {
   const t = content[language];
   
-  // Load services from Supabase
-  const [services, setServices] = useState([]);
-  
-  useEffect(() => {
-    const loadServices = async () => {
-      try {
-        const servicesData = await getServices();
-        setServices(servicesData);
-      } catch (error) {
-        console.error('Error loading services:', error);
-        setServices([]);
-      }
-    };
-    
-    loadServices();
-  }, []);
+  // Use services data from content (already loaded in App.js)
+  const services = content.services || [];
 
   return (
     <section id="services" className="services scroll-animate page-section">

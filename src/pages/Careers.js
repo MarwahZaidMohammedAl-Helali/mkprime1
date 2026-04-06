@@ -1,26 +1,10 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { getCareers } from '../services/dataService';
 
 function Careers({ language, content }) {
   const t = content[language];
   
-  // Load careers from Supabase
-  const [careers, setCareers] = useState([]);
-  
-  useEffect(() => {
-    const loadCareers = async () => {
-      try {
-        const careersData = await getCareers();
-        setCareers(careersData);
-      } catch (error) {
-        console.error('Error loading careers:', error);
-        setCareers([]);
-      }
-    };
-    
-    loadCareers();
-  }, []);
+  // Use careers data from content (already loaded in App.js)
+  const careers = content.careers || [];
 
   return (
     <section className="careers page-section scroll-animate">

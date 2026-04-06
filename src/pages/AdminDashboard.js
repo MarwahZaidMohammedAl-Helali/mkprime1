@@ -29,6 +29,13 @@ function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [adminStatus, setAdminStatus] = useState('Connecting...');
   
+  // Helper function to notify main website of content updates
+  const notifyContentUpdate = () => {
+    // Dispatch custom event to notify App.js to reload content
+    window.dispatchEvent(new CustomEvent('adminContentUpdate'));
+    console.log('🔄 Notified main website of content update');
+  };
+  
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
@@ -91,6 +98,7 @@ function AdminDashboard() {
       const updatedAbout = { ...aboutInfo, [field]: value };
       await updateAboutInfo(updatedAbout);
       setAboutInfo(updatedAbout);
+      notifyContentUpdate();
     } catch (error) {
       console.error('Error updating about info:', error);
       alert('Error updating about info. Please try again.');
@@ -103,6 +111,7 @@ function AdminDashboard() {
       const updatedHero = { ...heroContent, [field]: value };
       await updateHeroContent(updatedHero);
       setHeroContent(updatedHero);
+      notifyContentUpdate();
     } catch (error) {
       console.error('Error updating hero content:', error);
       alert('Error updating hero content. Please try again.');
@@ -130,6 +139,7 @@ function AdminDashboard() {
         descEn: addedCareer.description_en,
         descAr: addedCareer.description_ar
       }]);
+      notifyContentUpdate();
     } catch (error) {
       console.error('Error adding career:', error);
       alert('Error adding career. Please try again.');
@@ -146,6 +156,7 @@ function AdminDashboard() {
         career.id === id ? { ...career, [field]: value } : career
       ));
       console.log('Career updated successfully');
+      notifyContentUpdate();
     } catch (error) {
       console.error('Error updating career:', error);
       alert(`Error updating career: ${error.message}`);
@@ -157,6 +168,7 @@ function AdminDashboard() {
       try {
         await deleteCareer(id);
         setCareers(careers.filter(career => career.id !== id));
+        notifyContentUpdate();
       } catch (error) {
         console.error('Error deleting career:', error);
         alert('Error deleting career. Please try again.');
@@ -184,6 +196,7 @@ function AdminDashboard() {
         descAr: addedService.description_ar,
         imageUrl: addedService.image_url
       }]);
+      notifyContentUpdate();
     } catch (error) {
       console.error('Error adding service:', error);
       alert('Error adding service. Please try again.');
@@ -197,6 +210,7 @@ function AdminDashboard() {
       setServices(services.map(service => 
         service.id === id ? { ...service, [field]: value } : service
       ));
+      notifyContentUpdate();
     } catch (error) {
       console.error('Error updating service:', error);
       alert('Error updating service. Please try again.');
@@ -208,6 +222,7 @@ function AdminDashboard() {
       try {
         await deleteService(id);
         setServices(services.filter(service => service.id !== id));
+        notifyContentUpdate();
       } catch (error) {
         console.error('Error deleting service:', error);
         alert('Error deleting service. Please try again.');
@@ -232,6 +247,7 @@ function AdminDashboard() {
         logoPath: addedPartner.logo_path,
         order: addedPartner.display_order
       }]);
+      notifyContentUpdate();
     } catch (error) {
       console.error('Error adding partner:', error);
       alert('Error adding partner. Please try again.');
@@ -245,6 +261,7 @@ function AdminDashboard() {
       setPartners(partners.map(partner => 
         partner.id === id ? { ...partner, [field]: value } : partner
       ));
+      notifyContentUpdate();
     } catch (error) {
       console.error('Error updating partner:', error);
       alert('Error updating partner. Please try again.');
@@ -256,6 +273,7 @@ function AdminDashboard() {
       try {
         await deletePartner(id);
         setPartners(partners.filter(partner => partner.id !== id));
+        notifyContentUpdate();
       } catch (error) {
         console.error('Error deleting partner:', error);
         alert('Error deleting partner. Please try again.');
@@ -275,6 +293,7 @@ function AdminDashboard() {
       // Update orders in database
       try {
         await Promise.all(newPartners.map(p => updatePartner(p.id, { order: p.order })));
+        notifyContentUpdate();
       } catch (error) {
         console.error('Error updating partner order:', error);
       }
@@ -293,6 +312,7 @@ function AdminDashboard() {
       // Update orders in database
       try {
         await Promise.all(newPartners.map(p => updatePartner(p.id, { order: p.order })));
+        notifyContentUpdate();
       } catch (error) {
         console.error('Error updating partner order:', error);
       }

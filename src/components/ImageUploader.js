@@ -91,34 +91,18 @@ function ImageUploader({ currentImage, onImageChange, onImageDelete }) {
   const handleDelete = async () => {
     if (!currentImage) return;
     
-    if (!window.confirm('Are you sure you want to delete this image?')) {
+    if (!window.confirm('Are you sure you want to remove this image?')) {
       return;
     }
 
     try {
-      const apiUrl = process.env.NODE_ENV === 'production'
-        ? '/api/delete-image.php'
-        : 'http://localhost:5001/api/delete-image';
-
-      const response = await fetch(apiUrl, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ filename: currentImage })
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setPreview(null);
-        onImageDelete();
-      } else {
-        alert('Failed to delete image: ' + data.message);
-      }
+      // For now, we just remove the image reference from the database
+      // The actual file stays in the public folder
+      setPreview(null);
+      onImageDelete();
     } catch (error) {
       console.error('Delete error:', error);
-      alert('Failed to delete image. Please try again.');
+      alert('Failed to remove image. Please try again.');
     }
   };
 

@@ -25,48 +25,61 @@ function AppContent() {
   const [language, setLanguage] = useState('en');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [dynamicContent, setDynamicContent] = useState({});
-  const [contentLoading, setContentLoading] = useState(true);
   const location = useLocation();
 
   // Check if on admin pages
   const isAdminPage = location.pathname.startsWith('/admin');
 
-  // Load dynamic content from Supabase
+  // Function to load dynamic content
+  const loadContent = async () => {
+    try {
+      console.log('🔄 Starting to load dynamic content from Supabase...');
+      
+      // Add timeout to prevent infinite loading
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Loading timeout')), 5000)
+      );
+      
+      const content = await Promise.race([
+        loadDynamicContent(),
+        timeoutPromise
+      ]);
+      
+      console.log('✅ Dynamic content loaded successfully:', content);
+      setDynamicContent(content);
+    } catch (error) {
+      console.error('❌ Error loading content:', error);
+      // Set empty content as fallback
+      setDynamicContent({
+        careers: [],
+        services: [],
+        partners: [],
+        aboutInfo: {},
+        heroContent: {}
+      });
+    } finally {
+      console.log('🏁 Content loading completed');
+    }
+  };
+
+  // Load dynamic content from Supabase on mount
   useEffect(() => {
-    const loadContent = async () => {
-      try {
-        setContentLoading(true);
-        console.log('🔄 Starting to load dynamic content from Supabase...');
-        
-        // Add timeout to prevent infinite loading
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Loading timeout')), 5000)
-        );
-        
-        const content = await Promise.race([
-          loadDynamicContent(),
-          timeoutPromise
-        ]);
-        
-        console.log('✅ Dynamic content loaded successfully:', content);
-        setDynamicContent(content);
-      } catch (error) {
-        console.error('❌ Error loading content:', error);
-        // Set empty content as fallback
-        setDynamicContent({
-          careers: [],
-          services: [],
-          partners: [],
-          aboutInfo: {},
-          heroContent: {}
-        });
-      } finally {
-        setContentLoading(false);
-        console.log('🏁 Content loading completed, contentLoading set to false');
-      }
+    loadContent();
+  }, []);
+
+  // Add event listener for admin updates
+  useEffect(() => {
+    const handleAdminUpdate = () => {
+      console.log('🔄 Admin update detected, reloading content...');
+      loadContent();
     };
 
-    loadContent();
+    // Listen for custom event from admin panel
+    window.addEventListener('adminContentUpdate', handleAdminUpdate);
+    
+    return () => {
+      window.removeEventListener('adminContentUpdate', handleAdminUpdate);
+    };
   }, []);
 
   // Smooth scroll animation observer
@@ -433,7 +446,7 @@ function AppContent() {
         <Route path="/services" element={<Services language={language} content={content} />} />
         <Route path="/careers" element={<Careers language={language} content={content} />} />
         <Route path="/apply" element={<JobApplication language={language} content={content} countries={countries} />} />
-        <Route path="/partners" element={<Partners language={language} content={content} />} />
+        <Route path="/partners" element={<Partners language={language} content={{...content, partners: dynamicContent.partners}} />} />
         <Route path="/contact" element={<Contact language={language} content={content} countries={countries} />} />
       </Routes>
 

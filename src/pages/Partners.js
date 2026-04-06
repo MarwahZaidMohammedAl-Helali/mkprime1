@@ -1,25 +1,8 @@
-import { useState, useEffect } from 'react';
-import { getPartners } from '../services/dataService';
-
 function Partners({ language, content }) {
   const t = content[language];
   
-  // Load partners from Supabase
-  const [partners, setPartners] = useState([]);
-  
-  useEffect(() => {
-    const loadPartners = async () => {
-      try {
-        const partnersData = await getPartners();
-        setPartners(partnersData);
-      } catch (error) {
-        console.error('Error loading partners:', error);
-        setPartners([]);
-      }
-    };
-    
-    loadPartners();
-  }, []);
+  // Use partners data from content (already loaded in App.js)
+  const partners = content.partners || [];
 
   // Get partner name with placeholder for empty values
   const getPartnerName = (partner) => {
