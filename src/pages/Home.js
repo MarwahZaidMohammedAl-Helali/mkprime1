@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getPartners } from '../services/dataService';
 
 function Home({ language, content }) {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [partners, setPartners] = useState([]);
   const t = content[language];
 
   const heroImages = [
@@ -13,20 +11,8 @@ function Home({ language, content }) {
     'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1920&q=80'
   ];
 
-  // Load partners from Supabase
-  useEffect(() => {
-    const loadPartners = async () => {
-      try {
-        const partnersData = await getPartners();
-        setPartners(partnersData.slice(0, 5)); // Show only first 5
-      } catch (error) {
-        console.error('Error loading partners:', error);
-        setPartners([]);
-      }
-    };
-    
-    loadPartners();
-  }, []);
+  // Use partners data from content (already loaded in App.js)
+  const partners = (content.partners || []).slice(0, 5); // Show only first 5
 
   // Auto-slide every 5 seconds
   useEffect(() => {
